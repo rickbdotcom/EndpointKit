@@ -85,7 +85,11 @@ extension Publisher where Output == (data: Data, response: URLResponse), Failure
 		handleEvents(receiveOutput: { data, urlResponse in
 			if debugDataTaskPublisherResponse {
 				Swift.print(urlResponse.debugDescription)
-				if let string = String(data: data, encoding: .utf8) {
+				if let json = try? JSONSerialization.jsonObject(with: data, options: []),
+				   let stringData = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted]),
+				   let string = String(data: stringData, encoding: .utf8) {
+					Swift.print(string)
+				} else if let string = String(data: data, encoding: .utf8) {
 					Swift.print(string)
 				}
 			}

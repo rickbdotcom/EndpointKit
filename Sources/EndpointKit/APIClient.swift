@@ -11,59 +11,77 @@ import Foundation
 public class APIClient: ObservableObject {
 	@Published var session: URLSession
 
-	let baseURL: URL
-	let mapApiError: ((HTTPURLResponse, Data) -> Error?)?
-	let reauthorize: (() -> AnyPublisher<Void, Error>)?
+	public typealias MapAPIError = ((HTTPURLResponse, Data) -> Error?)
+	public typealias Recover = ((APIClient, Error) -> AnyPublisher<Void, Error>?)
 
-	public init(baseURL: URL, session: URLSession = URLSession(configuration: .default), mapError: ((HTTPURLResponse, Data) -> Error?)? = nil, reauthorize: (() -> AnyPublisher<Void, Error>)? = nil) {
+	let baseURL: URL
+	let mapApiError: MapAPIError?
+	let recover: Recover?
+
+	static var debugApiErrors: Bool = false
+
+	public init(baseURL: URL, session: URLSession = URLSession(configuration: .default), mapApiError: MapAPIError? = nil, recover: Recover? = nil) {
 		self.baseURL = baseURL
 		self.session = session
-		self.mapApiError = mapError
-		self.reauthorize = reauthorize
+		self.mapApiError = mapApiError
+		self.recover = recover
 	}
 
-	public func request<T: APIEndpoint>(_ endpoint: T, retryOnAuthError: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters: Encodable, T.Response: Decodable {
+	public func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters: Encodable, T.Response: Decodable {
 		session.request(endpoint, baseURL: baseURL)
-			.handleResponse(mapApiError: mapApiError, retry: retry(retryOnAuthError, self.request(endpoint, retryOnAuthError: false)))
+			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
 	}
 
-	public func request<T: APIEndpoint>(_ endpoint: T, retryOnAuthError: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters: Encodable, T.Response == Void {
+	public func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters: Encodable, T.Response == Void {
 		session.request(endpoint, baseURL: baseURL)
-			.handleResponse(mapApiError: mapApiError, retry: retry(retryOnAuthError, self.request(endpoint, retryOnAuthError: false)))
+			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
 	}
 
-	public func request<T: APIEndpoint>(_ endpoint: T, retryOnAuthError: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters == Void, T.Response: Decodable {
+	public func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters == Void, T.Response: Decodable {
 		session.request(endpoint, baseURL: baseURL)
-			.handleResponse(mapApiError: mapApiError, retry: retry(retryOnAuthError, self.request(endpoint, retryOnAuthError: false)))
+			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
 	}
 
-	public func request<T: APIEndpoint>(_ endpoint: T, retryOnAuthError: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters == Void, T.Response == Void {
+	public func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters == Void, T.Response == Void {
 		session.request(endpoint, baseURL: baseURL)
-			.handleResponse(mapApiError: mapApiError, retry: retry(retryOnAuthError, self.request(endpoint, retryOnAuthError: false)))
+			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
 	}
 }
 
-extension APIClient {
+public extension APIClient {
 
-	func retry<T>(_ retryOnAuthError: Bool, _ request: @autoclosure @escaping () -> AnyPublisher<T, Error>) -> (() -> AnyPublisher<T, Error>)? {
-		guard retryOnAuthError, let reauthorize = reauthorize else {
+	func retry<T>(_ attemptRecovery: Bool, _ request: @autoclosure @escaping () -> AnyPublisher<T, Error>) -> ((Error) -> AnyPublisher<T, Error>?)? {
+		guard attemptRecovery, let recover = recover else {
 			return nil
 		}
-		return {
-			reauthorize().flatMap {
-				request()
-			}.eraseToAnyPublisher()
+		return { error in
+			if let recover = recover(self, error) {
+				return recover.flatMap {
+					request()
+				}.eraseToAnyPublisher()
+			} else {
+				return nil
+			}
+		}
+	}
+
+	static func retryUnauthorized(_ reauthorize: @escaping (APIClient) -> AnyPublisher<Void, Error>?) -> Recover? {
+		{ client, error in
+			if (error as? HTTPError)?.response.statusCode == 401 {
+				return reauthorize(client)
+			} else {
+				return nil
+			}
 		}
 	}
 }
 
-extension Publisher {
+public extension Publisher {
 
-	func handleResponse(mapApiError: ((HTTPURLResponse, Data) -> Error?)?, retry: (() -> AnyPublisher<Output, Failure>)?) -> AnyPublisher<Output, Failure> where Failure == Error {
+	func handleApiResponse(mapApiError: ((HTTPURLResponse, Data) -> Error?)?, retry: ((Error) -> AnyPublisher<Output, Failure>?)?) -> AnyPublisher<Output, Failure> where Failure == Error {
 		tryCatch { error -> AnyPublisher<Output, Failure> in
-			if let retry = retry,
-			   (error as? HTTPError)?.response.statusCode == 401 {
-				return retry()
+			if let retry = retry?(error) {
+				return retry
 			}
 			throw error
 		}
@@ -74,13 +92,13 @@ extension Publisher {
 				return error.extendedError
 			}
 		}
-		.printError()
+		.printApiError()
 		.eraseToAnyPublisher()
 	}
 
-	func printError() -> AnyPublisher<Output, Failure> {
+	func printApiError() -> AnyPublisher<Output, Failure> {
 		handleEvents(receiveCompletion: { result in
-			if case let .failure(error) = result {
+			if APIClient.debugApiErrors, case let .failure(error) = result {
 				Swift.print(error.localizedDescription)
 			}
 		}).eraseToAnyPublisher()

@@ -1,6 +1,6 @@
 //
 //  Endpoint.swift
-//  
+//
 //
 //  Created by rickb on 1/30/21.
 //
@@ -31,7 +31,7 @@ public enum HTTPMethod: String {
 		case .get:
 			return URLParameterEncoder()
 		default:
-			return JSONEncoder()
+			return JSONEncoder().parameterEncoder
 		}
 	}
 }
@@ -41,28 +41,28 @@ public struct Endpoint: ExpressibleByStringLiteral {
 	public let method: HTTPMethod
 	public let headers: [String: String]?
 	public let encoder: ParameterEncoder
-	public let decoder: DataDecoder
+	public let decoder: ResponseDecoder
 
-	public init(_ path: String, _ method: HTTPMethod, encoder: ParameterEncoder? = nil, decoder: DataDecoder = JSONDecoder(), headers: [String: String]? = nil) {
+	public init(_ path: String, _ method: HTTPMethod, encoder: ParameterEncoder? = nil, decoder: ResponseDecoder = JSONDecoder().responseDecoder, headers: [String: String]? = nil) {
 		self.path = path
 		self.method = method
 		self.headers = headers
 		self.encoder = encoder ?? method.defaultEncoding
 		self.decoder = decoder
 	}
-	
+
 	public init(stringLiteral: StringLiteralType) {
 		let comps = stringLiteral.components(separatedBy: " ")
 		guard comps.count == 2,
 			  let method = HTTPMethod(rawValue: comps[0]) else {
 			preconditionFailure("Invalid Endpoint string: \(stringLiteral)")
 		}
-		
+
 		self.path = comps[1]
 		self.method = method
 		self.headers = nil
 		self.encoder = method.defaultEncoding
-		self.decoder = JSONDecoder()
+		self.decoder = JSONDecoder().responseDecoder
 	}
 }
 

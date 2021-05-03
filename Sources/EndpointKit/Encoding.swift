@@ -40,6 +40,13 @@ public class FormEncoder: ParameterEncoder {
 	}
 }
 
+extension Dictionary where Key == String, Value == Any {
+
+	func getParameters() -> [String: String] {  // not handling arrays, add if needed
+		mapValues { "\($0)" }
+	}
+}
+
 extension JSONEncoder {
 
 	func jsonObject<T: Encodable>(_ value: T) throws -> Any {
@@ -47,9 +54,9 @@ extension JSONEncoder {
 	}
 
 	func encodeToQuery<T: Encodable>(_ value: T) throws -> [URLQueryItem] {
-		let dict = try jsonObject(value) as? [String: String] ?? [:] // not handling arrays, add if needed
+		let dict = (try jsonObject(value) as? [String: Any])?.getParameters()
 		var queryItems = [URLQueryItem]()
-		dict.forEach { key, value in
+		dict?.forEach { key, value in
 			queryItems.append(.init(name: key, value: value))
 		}
 		return queryItems
@@ -78,13 +85,27 @@ extension URL {
 	}
 }
 
-extension JSONEncoder: ParameterEncoder {
+extension JSONEncoder {
 
 	public func encode<T: Encodable>(parameters: T, in request: URLRequest) throws -> URLRequest {
 		var modifiedRequest = request
 		modifiedRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
 		modifiedRequest.httpBody = try encode(parameters)
 		return modifiedRequest
+	}
+}
+
+public extension JSONEncoder {
+	var parameterEncoder: ParameterEncoder {
+		JSONParameterEncoder(encoder: self)
+	}
+}
+
+struct JSONParameterEncoder: ParameterEncoder {
+	let encoder: JSONEncoder
+
+	func encode<T>(parameters: T, in request: URLRequest) throws -> URLRequest where T : Encodable {
+		try encoder.encode(parameters: parameters, in: request)
 	}
 }
 
@@ -95,14 +116,26 @@ extension URLRequest {
 	}
 }
 
-public protocol DataDecoder {
+public protocol ResponseDecoder {
 	func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T
 }
 
-extension JSONDecoder: DataDecoder {
+public extension JSONDecoder {
+
+	var responseDecoder: ResponseDecoder {
+		JSONResponseDecoder(decoder: self)
+	}
 }
 
-class StringDecoder: DataDecoder {
+struct JSONResponseDecoder: ResponseDecoder {
+	let decoder: JSONDecoder
+
+	func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
+		try decoder.decode(type, from: data)
+	}
+}
+
+class StringDecoder: ResponseDecoder {
 
 	enum Error: Swift.Error {
 		case stringDecodeError
@@ -115,4 +148,9 @@ class StringDecoder: DataDecoder {
 			throw Error.stringDecodeError
 		}
 	}
+}
+
+public extension String {
+
+	static let responseDecoder: ResponseDecoder = StringDecoder()
 }
