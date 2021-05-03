@@ -3,5 +3,6 @@ import XCTest
 
 final class EndpointKitTests: XCTestCase {
 	func testExample() {
+
 	}
 }

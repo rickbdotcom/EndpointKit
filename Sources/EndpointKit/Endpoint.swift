@@ -20,67 +20,67 @@ extension APIEndpoint where Parameters == Void {
 }
 
 public enum HTTPMethod: String {
-    case get = "GET"
-    case post = "POST"
-    case put = "PUT"
-    case delete = "DELETE"
-    case head = "HEAD"
+	case get = "GET"
+	case post = "POST"
+	case put = "PUT"
+	case delete = "DELETE"
+	case head = "HEAD"
 
-    var defaultEncoding: ParameterEncoder {
-        switch self {
-        case .get:
-            return URLParameterEncoder()
-        default:
-            return JSONEncoder()
-        }
-    }
+	var defaultEncoding: ParameterEncoder {
+		switch self {
+		case .get:
+			return URLParameterEncoder()
+		default:
+			return JSONEncoder()
+		}
+	}
 }
 
 public struct Endpoint: ExpressibleByStringLiteral {
 	public let path: String
 	public let method: HTTPMethod
 	public let headers: [String: String]?
-    public let encoder: ParameterEncoder
-    public let decoder: DataDecoder
+	public let encoder: ParameterEncoder
+	public let decoder: DataDecoder
 
 	public init(_ path: String, _ method: HTTPMethod, encoder: ParameterEncoder? = nil, decoder: DataDecoder = JSONDecoder(), headers: [String: String]? = nil) {
 		self.path = path
 		self.method = method
 		self.headers = headers
-        self.encoder = encoder ?? method.defaultEncoding
-        self.decoder = decoder
+		self.encoder = encoder ?? method.defaultEncoding
+		self.decoder = decoder
 	}
-    
-    public init(stringLiteral: StringLiteralType) {
-        let comps = stringLiteral.components(separatedBy: " ")
-        guard comps.count == 2,
-              let method = HTTPMethod(rawValue: comps[0]) else {
-            preconditionFailure("Invalid Endpoint string: \(stringLiteral)")
-        }
-        
-        self.path = comps[1]
-        self.method = method
-        self.headers = nil
-        self.encoder = method.defaultEncoding
-        self.decoder = JSONDecoder()
-    }
+	
+	public init(stringLiteral: StringLiteralType) {
+		let comps = stringLiteral.components(separatedBy: " ")
+		guard comps.count == 2,
+			  let method = HTTPMethod(rawValue: comps[0]) else {
+			preconditionFailure("Invalid Endpoint string: \(stringLiteral)")
+		}
+		
+		self.path = comps[1]
+		self.method = method
+		self.headers = nil
+		self.encoder = method.defaultEncoding
+		self.decoder = JSONDecoder()
+	}
 }
 
 public extension Endpoint {
 
-    func request<T: Encodable>(baseURL: URL, parameters: T) throws -> URLRequest {
-        var request = try self.request(baseURL: baseURL)
-        try request.encode(parameters, with: encoder)
-        return request
+	func request<T: Encodable>(baseURL: URL, parameters: T) throws -> URLRequest {
+		var request = try self.request(baseURL: baseURL)
+		try request.encode(parameters, with: encoder)
+		return request
 	}
 
-    func request(baseURL: URL) throws -> URLRequest {
-        let url = baseURL.appendingPathComponent(path)
-        var request = URLRequest(url: url)
-        request.httpMethod = method.rawValue
-        headers?.forEach { key, value in
-            request.setValue(value, forHTTPHeaderField: key)
-        }
-        return request
+	func request(baseURL: URL) throws -> URLRequest {
+		let url = baseURL.appendingPathComponent(path)
+		var request = URLRequest(url: url)
+		request.httpMethod = method.rawValue
+		headers?.forEach { key, value in
+			request.setValue(value, forHTTPHeaderField: key)
+		}
+		return request
 	}
 }
