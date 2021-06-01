@@ -9,7 +9,7 @@ import Combine
 import Foundation
 
 public class APIClient: ObservableObject {
-	@Published var session: URLSession
+	@Published public var session: URLSession
 
 	public typealias MapAPIError = ((HTTPURLResponse, Data) -> Error?)
 	public typealias Recover = ((APIClient, Error) -> AnyPublisher<Void, Error>?)
@@ -18,7 +18,7 @@ public class APIClient: ObservableObject {
 	let mapApiError: MapAPIError?
 	let recover: Recover?
 
-	static var debugApiErrors: Bool = false
+	public static var printApiErrors: Bool = false
 
 	public init(baseURL: URL, session: URLSession = URLSession(configuration: .default), mapApiError: MapAPIError? = nil, recover: Recover? = nil) {
 		self.baseURL = baseURL
@@ -98,7 +98,7 @@ public extension Publisher {
 
 	func printApiError() -> AnyPublisher<Output, Failure> {
 		handleEvents(receiveCompletion: { result in
-			if APIClient.debugApiErrors, case let .failure(error) = result {
+			if APIClient.printApiErrors, case let .failure(error) = result {
 				Swift.print(error.localizedDescription)
 			}
 		}).eraseToAnyPublisher()

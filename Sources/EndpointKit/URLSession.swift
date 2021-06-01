@@ -12,10 +12,9 @@ extension URLSession {
 
 	func request<T: APIEndpoint>(_ endpoint: T, baseURL: URL) -> AnyPublisher<T.Response, Error> where T.Parameters: Encodable, T.Response: Decodable {
 		do {
-			return dataTaskPublisher(for:
-				try endpoint.endpoint.request(baseURL: baseURL, parameters: endpoint.parameters)
-			).debugResponse().validate()
-			.tryMap { data, urlResponse in
+			let request = try endpoint.endpoint.request(baseURL: baseURL, parameters: endpoint.parameters)
+			return dataTaskPublisher(for: request).debugPrintRequest(request).validate()
+			.tryMap { data, _ in
 				try endpoint.endpoint.decoder.decode(T.Response.self, from: data)
 			}.mapError { $0 }.receive(on: RunLoop.main).eraseToAnyPublisher()
 		} catch {
@@ -25,9 +24,8 @@ extension URLSession {
 
 	func request<T: APIEndpoint>(_ endpoint: T, baseURL: URL) -> AnyPublisher<T.Response, Error> where T.Parameters == Void, T.Response: Decodable {
 		do {
-			return dataTaskPublisher(for:
-				try endpoint.endpoint.request(baseURL: baseURL)
-			).debugResponse().validate().tryMap { data, urlResponse in
+			let request = try endpoint.endpoint.request(baseURL: baseURL)
+			return dataTaskPublisher(for: request).debugPrintRequest(request).validate().tryMap { data, _ in
 				try endpoint.endpoint.decoder.decode(T.Response.self, from: data)
 			}.mapError { $0 }.receive(on: RunLoop.main).eraseToAnyPublisher()
 		} catch {
@@ -37,9 +35,8 @@ extension URLSession {
 
 	func request<T: APIEndpoint>(_ endpoint: T, baseURL: URL) -> AnyPublisher<T.Response, Error> where T.Parameters: Encodable, T.Response == Void {
 		do {
-			return dataTaskPublisher(for:
-				try endpoint.endpoint.request(baseURL: baseURL, parameters: endpoint.parameters)
-			).debugResponse().validate()
+			let request = try endpoint.endpoint.request(baseURL: baseURL, parameters: endpoint.parameters)
+			return dataTaskPublisher(for: request).debugPrintRequest(request).validate()
 			.map { _ in }.mapError { $0 }.receive(on: RunLoop.main).eraseToAnyPublisher()
 		} catch {
 			return Fail(error: error).eraseToAnyPublisher()
@@ -48,9 +45,8 @@ extension URLSession {
 
 	func request<T: APIEndpoint>(_ endpoint: T, baseURL: URL) -> AnyPublisher<Void, Error> {
 		do {
-			return dataTaskPublisher(for:
-				try endpoint.endpoint.request(baseURL: baseURL)
-			).debugResponse().validate()
+			let request = try endpoint.endpoint.request(baseURL: baseURL)
+			return dataTaskPublisher(for: request).debugPrintRequest(request).validate()
 			.map { _ in }.mapError { $0 }.receive(on: RunLoop.main).eraseToAnyPublisher()
 		} catch {
 			return Fail(error: error).eraseToAnyPublisher()
@@ -58,12 +54,12 @@ extension URLSession {
 	}
 }
 
-var debugDataTaskPublisherResponse = false
+private var printRequests = false
 
 public extension URLSession.DataTaskPublisher {
 
-	static func setDebugResponse(_ enable: Bool) {
-		debugDataTaskPublisherResponse = enable
+	static func setDebugPrintRequest(_ enable: Bool) {
+		printRequests = enable
 	}
 }
 
@@ -81,19 +77,26 @@ extension Publisher where Output == (data: Data, response: URLResponse), Failure
 		}.eraseToAnyPublisher()
 	}
 
-	func debugResponse() -> AnyPublisher<Output, Failure> {
-		handleEvents(receiveOutput: { data, urlResponse in
-			if debugDataTaskPublisherResponse {
-				Swift.print(urlResponse.debugDescription)
-				if let json = try? JSONSerialization.jsonObject(with: data, options: []),
-				   let stringData = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted]),
-				   let string = String(data: stringData, encoding: .utf8) {
-					Swift.print(string)
-				} else if let string = String(data: data, encoding: .utf8) {
-					Swift.print(string)
+	func debugPrintRequest(_ request: URLRequest) -> AnyPublisher<Output, Failure> {
+		handleEvents(
+			receiveSubscription: { _ in
+				if printRequests {
+					Swift.print(request.curl)
+				}
+			},
+			receiveOutput: { data, urlResponse in
+				if printRequests {
+					Swift.print(urlResponse.debugDescription)
+					if let json = try? JSONSerialization.jsonObject(with: data, options: []),
+					   let stringData = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted]),
+					   let string = String(data: stringData, encoding: .utf8) {
+						Swift.print(string)
+					} else if let string = String(data: data, encoding: .utf8) {
+						Swift.print(string)
+					}
 				}
 			}
-		}).eraseToAnyPublisher()
+		).eraseToAnyPublisher()
 	}
 }
 

@@ -104,7 +104,7 @@ public extension JSONEncoder {
 struct JSONParameterEncoder: ParameterEncoder {
 	let encoder: JSONEncoder
 
-	func encode<T>(parameters: T, in request: URLRequest) throws -> URLRequest where T : Encodable {
+	func encode<T>(parameters: T, in request: URLRequest) throws -> URLRequest where T: Encodable {
 		try encoder.encode(parameters: parameters, in: request)
 	}
 }
@@ -130,7 +130,7 @@ public extension JSONDecoder {
 struct JSONResponseDecoder: ResponseDecoder {
 	let decoder: JSONDecoder
 
-	func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
+	func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
 		try decoder.decode(type, from: data)
 	}
 }
