@@ -46,6 +46,26 @@ public class APIClient: ObservableObject {
 		session.request(endpoint, baseURL: baseURL)
 			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
 	}
+
+	public func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters: Encodable, T.Response == Data {
+		session.request(endpoint, baseURL: baseURL)
+			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
+	}
+
+	public func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters == Void, T.Response == Data {
+		session.request(endpoint, baseURL: baseURL)
+			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
+	}
+
+	public func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters == Data, T.Response: Decodable {
+		session.request(endpoint, baseURL: baseURL)
+			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
+	}
+
+	public func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters == Data, T.Response == Void {
+		session.request(endpoint, baseURL: baseURL)
+			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
+	}
 }
 
 public extension APIClient {

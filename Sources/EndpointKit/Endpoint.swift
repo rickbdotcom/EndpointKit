@@ -29,9 +29,9 @@ public enum HTTPMethod: String {
 	var defaultEncoding: ParameterEncoder {
 		switch self {
 		case .get:
-			return URLParameterEncoder()
+			return URLParameterEncoder(encoder: defaultEncoder)
 		default:
-			return JSONEncoder().parameterEncoder
+			return defaultEncoder.parameterEncoder
 		}
 	}
 }
@@ -43,7 +43,7 @@ public struct Endpoint: ExpressibleByStringLiteral {
 	public let encoder: ParameterEncoder
 	public let decoder: ResponseDecoder
 
-	public init(_ path: String, _ method: HTTPMethod, encoder: ParameterEncoder? = nil, decoder: ResponseDecoder = JSONDecoder().responseDecoder, headers: [String: String]? = nil) {
+	public init(_ path: String, _ method: HTTPMethod, encoder: ParameterEncoder? = nil, decoder: ResponseDecoder = defaultDecoder.responseDecoder, headers: [String: String]? = nil) {
 		self.path = path
 		self.method = method
 		self.headers = headers
@@ -62,11 +62,21 @@ public struct Endpoint: ExpressibleByStringLiteral {
 		self.method = method
 		self.headers = nil
 		self.encoder = method.defaultEncoding
-		self.decoder = JSONDecoder().responseDecoder
+		self.decoder = defaultDecoder.responseDecoder
 	}
 }
 
 public extension Endpoint {
+
+	func request(baseURL: URL, parameters: Data) throws -> URLRequest {
+		var request = try self.request(baseURL: baseURL)
+		do {
+			try request.encode(parameters, with: encoder)
+		} catch {
+			try request.encode(parameters, with: OctetStreamParameterEncoder())
+		}
+		return request
+	}
 
 	func request<T: Encodable>(baseURL: URL, parameters: T) throws -> URLRequest {
 		var request = try self.request(baseURL: baseURL)
@@ -84,3 +94,46 @@ public extension Endpoint {
 		return request
 	}
 }
+
+extension JSONDecoder.DateDecodingStrategy {
+    static let customISO8601 = custom {
+        let container = try $0.singleValueContainer()
+        let string = try container.decode(String.self)
+        if let date = Formatter.iso8601withFractionalSeconds.date(from: string) ?? Formatter.iso8601.date(from: string) {
+            return date
+        }
+        throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date: \(string)")
+    }
+}
+
+extension JSONEncoder.DateEncodingStrategy {
+    static let customISO8601 = custom {
+        var container = $1.singleValueContainer()
+        try container.encode(Formatter.iso8601withFractionalSeconds.string(from: $0))
+    }
+}
+
+extension Formatter {
+    static let iso8601withFractionalSeconds: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+    static let iso8601: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
+}
+
+public let defaultEncoder: JSONEncoder = {
+    let encoder = JSONEncoder()
+    encoder.dateEncodingStrategy = .customISO8601
+    return encoder
+}()
+
+public let defaultDecoder: JSONDecoder = {
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .customISO8601
+    return decoder
+}()

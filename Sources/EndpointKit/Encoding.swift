@@ -7,8 +7,42 @@
 
 import Foundation
 
+enum ParameterEncoderError: LocalizedError {
+	case cantEncodeData
+	case cantEncodeJSON
+
+	var errorDescription: String? {
+		switch self {
+		case .cantEncodeData:
+			return "Can't encode Data"
+		case .cantEncodeJSON:
+			return "Can't encode JSON"
+		}
+	}
+}
 public protocol ParameterEncoder {
 	func encode<T: Encodable>(parameters: T, in request: URLRequest) throws -> URLRequest
+	func encode(parameters: Data, in request: URLRequest) throws -> URLRequest
+}
+
+public extension ParameterEncoder {
+	func encode(parameters: Data, in request: URLRequest) throws -> URLRequest {
+		throw ParameterEncoderError.cantEncodeData
+	}
+}
+
+struct OctetStreamParameterEncoder: ParameterEncoder {
+
+	public func encode<T: Encodable>(parameters: T, in request: URLRequest) throws -> URLRequest {
+		throw ParameterEncoderError.cantEncodeJSON
+	}
+
+	public func encode(parameters: Data, in request: URLRequest) throws -> URLRequest {
+		var modifiedRequest = request
+		modifiedRequest.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
+		modifiedRequest.httpBody = parameters
+		return modifiedRequest
+	}
 }
 
 public struct URLParameterEncoder: ParameterEncoder {
@@ -104,7 +138,7 @@ public extension JSONEncoder {
 struct JSONParameterEncoder: ParameterEncoder {
 	let encoder: JSONEncoder
 
-	func encode<T>(parameters: T, in request: URLRequest) throws -> URLRequest where T: Encodable {
+	func encode<T>(parameters: T, in request: URLRequest) throws -> URLRequest where T : Encodable {
 		try encoder.encode(parameters: parameters, in: request)
 	}
 }
@@ -112,6 +146,10 @@ struct JSONParameterEncoder: ParameterEncoder {
 extension URLRequest {
 
 	mutating func encode<T: Encodable>(_ parameters: T, with encoder: ParameterEncoder) throws {
+		self = try encoder.encode(parameters: parameters, in: self)
+	}
+
+	mutating func encode(_ parameters: Data, with encoder: ParameterEncoder) throws {
 		self = try encoder.encode(parameters: parameters, in: self)
 	}
 }
@@ -130,7 +168,7 @@ public extension JSONDecoder {
 struct JSONResponseDecoder: ResponseDecoder {
 	let decoder: JSONDecoder
 
-	func decode<T>(_ type: T.Type, from data: Data) throws -> T where T: Decodable {
+	func decode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
 		try decoder.decode(type, from: data)
 	}
 }
