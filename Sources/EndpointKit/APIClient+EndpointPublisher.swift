@@ -9,22 +9,8 @@ import Combine
 import Foundation
 
 public extension APIClient {
-	func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters: Encodable, T.Response: Decodable {
-		session.request(endpoint, baseURL: baseURL)
-			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
-	}
 
-	func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters: Encodable, T.Response == Void {
-		session.request(endpoint, baseURL: baseURL)
-			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
-	}
-
-	func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters == Void, T.Response: Decodable {
-		session.request(endpoint, baseURL: baseURL)
-			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
-	}
-
-	func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> where T.Parameters == Void, T.Response == Void {
+	func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) -> AnyPublisher<T.Response, Error> {
 		session.request(endpoint, baseURL: baseURL)
 			.handleApiResponse(mapApiError: mapApiError, retry: retry(attemptRecovery, self.request(endpoint, attemptRecovery: false)))
 	}

@@ -20,6 +20,7 @@ enum ParameterEncoderError: LocalizedError {
 		}
 	}
 }
+
 public protocol ParameterEncoder {
 	func encode<T: Encodable>(parameters: T, in request: URLRequest) throws -> URLRequest
 	func encode(parameters: Data, in request: URLRequest) throws -> URLRequest

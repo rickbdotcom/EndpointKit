@@ -12,6 +12,7 @@ public extension APIClient {
 	enum Recover {
 		case publisher((APIClient, Error) -> AnyPublisher<Void, Error>)
 #if swift(>=5.5)
+//		@available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
 		case task((APIClient, Error) async throws -> Void)
 #endif
 	}
@@ -20,28 +21,25 @@ public extension APIClient {
 public extension APIClient.Recover {
 
 #if swift(>=5.5)
+	@available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *)
 	func recoverAsync(_ client: APIClient, _ error: Error) async throws -> Void {
 		switch self {
 		case let .publisher(recover):
-			if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) {
-				try await withUnsafeThrowingContinuation { (c: UnsafeContinuation<Void, Error>) in
-					var subscription: AnyCancellable?
-					subscription = recover(client, error).sink(receiveCompletion: { result in
-						if case let .failure(error) = result {
-							c.resume(throwing: error)
-							if subscription != nil {
-								subscription = nil
-							}
-						}
-					}, receiveValue: {
-						c.resume(returning: ())
+			try await withUnsafeThrowingContinuation { (c: UnsafeContinuation<Void, Error>) in
+				var subscription: AnyCancellable?
+				subscription = recover(client, error).sink(receiveCompletion: { result in
+					if case let .failure(error) = result {
+						c.resume(throwing: error)
 						if subscription != nil {
 							subscription = nil
 						}
-					})
-				}
-			} else {
-				assertionFailure("how did we get here?")
+					}
+				}, receiveValue: {
+					c.resume(returning: ())
+					if subscription != nil {
+						subscription = nil
+					}
+				})
 			}
 		case let .task(recover):
 			try await recover(client, error)
@@ -65,7 +63,7 @@ public extension APIClient.Recover {
 						}
 					}
 				} else {
-					promise(.success(()))
+					preconditionFailure()
 				}
 			}.eraseToAnyPublisher()
 #endif

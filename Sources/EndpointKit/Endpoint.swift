@@ -13,10 +13,62 @@ public protocol APIEndpoint {
 
 	var parameters: Parameters { get }
 	var endpoint: Endpoint { get }
+
+	func request(baseURL: URL) throws -> URLRequest
+	func decode(from: Data) throws -> Response
 }
 
-extension APIEndpoint where Parameters == Void {
+public extension APIEndpoint where Parameters == Void {
   var parameters: () { () }
+}
+
+public extension APIEndpoint where Parameters == Void {
+
+	func request(baseURL: URL) throws -> URLRequest {
+		try endpoint.request(baseURL: baseURL)
+	}
+}
+
+public extension APIEndpoint where Parameters: Encodable {
+
+	func request(baseURL: URL) throws -> URLRequest {
+		var request = try endpoint.request(baseURL: baseURL)
+		try request.encode(parameters, with: endpoint.encoder)
+		return request
+	}
+}
+
+public extension APIEndpoint where Parameters == Data {
+
+ 	func request(baseURL: URL) throws -> URLRequest {
+		var request = try endpoint.request(baseURL: baseURL)
+		do {
+			try request.encode(parameters, with: endpoint.encoder)
+		} catch {
+			try request.encode(parameters, with: OctetStreamParameterEncoder())
+		}
+		return request
+	}
+}
+
+public extension APIEndpoint where Response == Void {
+
+	func decode(from: Data) throws -> Response {
+	}
+}
+
+public extension APIEndpoint where Response: Decodable {
+
+	func decode(from data: Data) throws -> Response {
+		try endpoint.decoder.decode(Response.self, from: data)
+	}
+}
+
+public extension APIEndpoint where Response == Data {
+
+	func decode(from data: Data) throws -> Response {
+		data
+	}
 }
 
 public enum HTTPMethod: String {
@@ -67,22 +119,6 @@ public struct Endpoint: ExpressibleByStringLiteral {
 }
 
 public extension Endpoint {
-
-	func request(baseURL: URL, parameters: Data) throws -> URLRequest {
-		var request = try self.request(baseURL: baseURL)
-		do {
-			try request.encode(parameters, with: encoder)
-		} catch {
-			try request.encode(parameters, with: OctetStreamParameterEncoder())
-		}
-		return request
-	}
-
-	func request<T: Encodable>(baseURL: URL, parameters: T) throws -> URLRequest {
-		var request = try self.request(baseURL: baseURL)
-		try request.encode(parameters, with: encoder)
-		return request
-	}
 
 	func request(baseURL: URL) throws -> URLRequest {
 		let url = baseURL.appendingPathComponent(path)
