@@ -53,3 +53,20 @@ extension Error {
 		}
 	}
 }
+
+struct HTTPError: LocalizedError {
+	let data: Data
+	let response: HTTPURLResponse
+
+	var errorDescription: String? {
+		"HTTP Error: \(response.statusCode)"
+	}
+}
+
+func validateHttpResponse(_ data: Data, _ response: URLResponse) throws {
+	guard let response = response as? HTTPURLResponse else { return }
+	let statusCode = response.statusCode
+	if statusCode < 200 || statusCode > 399 {
+		throw HTTPError(data: data, response: response)
+	}
+}
