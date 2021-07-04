@@ -12,10 +12,19 @@ import Foundation
 public extension APIClient {
 
 	func request<T: APIEndpoint>(_ endpoint: T, attemptRecovery: Bool = true) async throws -> T.Response {
+	
 		do {
 			return try await session.request(endpoint, baseURL: baseURL)
 		} catch {
-			return try await retry(error, attemptRecovery, try await self.request(endpoint, attemptRecovery: false))
+			do {
+				return try await retry(error, attemptRecovery, try await self.request(endpoint, attemptRecovery: false))
+			} catch {
+				if let httpError = error as? HTTPError {
+					throw mapApiError?(httpError.response, httpError.data) ?? error.extendedError
+				} else {
+					throw error.extendedError
+				}
+			}
 		}
 	}
 }
