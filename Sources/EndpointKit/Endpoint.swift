@@ -54,6 +54,7 @@ public extension APIEndpoint where Parameters == Data {
 public extension APIEndpoint where Response == Void {
 
 	func decode(from: Data) throws -> Response {
+		()
 	}
 }
 
