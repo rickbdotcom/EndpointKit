@@ -17,7 +17,7 @@ extension URLSession {
 	}
 
 	func dataAsync(for request: URLRequest) async throws -> (Data, URLResponse) {
-		if #available(iOS 15.0, macOS 12.0, *) {
+		if #available(iOS 15.0, macOS 12.0, watchOS 8.0, *) {
 			return try await data(for: request)
 		} else {
 			return try await withCheckedThrowingContinuation { continuation in
