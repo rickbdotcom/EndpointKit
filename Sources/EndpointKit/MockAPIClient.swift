@@ -25,6 +25,16 @@ public extension MockAPIClient {
 		return token
 	}
 
+	@discardableResult
+	func registerMockEndpoint<T: APIEndpoint & Equatable>(withFilePath path: String, endpoint: T) -> Any {
+		registerMockEndpoint { (match: T) in
+			guard match == endpoint else {
+				return nil
+			}
+			return try endpoint.decode(withFilePath: path)
+		}
+	}
+
 	func removeMockEndpoint(_ token: Any) {
 		if let token = token as? UUID {
 			endpointHandlers[token] = nil
@@ -39,23 +49,6 @@ public extension MockAPIClient {
 			}
 		}
 		throw MockError.noHandlerFound(endpoint.endpoint.path)
-	}
-
-	@discardableResult
-	func registerMockEndpoint<T: APIEndpoint & Equatable>(withFilePath path: String, endpoint: T) -> Any {
-		registerMockEndpoint { (match: T) in
-			guard match == endpoint else {
-				return nil
-			}
-			return try endpoint.decode(withFilePath: path)
-		}
-	}
-
-	@discardableResult
-	func registerMockEndpoint<T: APIEndpoint>(withFilePath path: String, type: T.Type) -> Any {
-		registerMockEndpoint { (endpoint: T) in
-			return try endpoint.decode(withFilePath: path)
-		}
 	}
 
 	enum MockError: LocalizedError {
@@ -73,7 +66,7 @@ public extension MockAPIClient {
 	}
 }
 
-private extension APIEndpoint {
+public extension APIEndpoint {
 
 	func decode(withFilePath path: String) throws -> Response {
 		guard FileManager.default.fileExists(atPath: path) else {
