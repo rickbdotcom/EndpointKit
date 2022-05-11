@@ -42,14 +42,19 @@ public extension MockAPIClient {
 	}
 
 	@discardableResult
-	func registerMockEndpoint<T: APIEndpoint>(withFilePath path: String, endpoint: T.Type) -> Any {
-		registerMockEndpoint { (endpoint: T) in
-			guard FileManager.default.fileExists(atPath: path) else {
-				throw MockAPIClient.MockError.fileNotFound(path)
+	func registerMockEndpoint<T: APIEndpoint & Equatable>(withFilePath path: String, endpoint: T) -> Any {
+		registerMockEndpoint { (match: T) in
+			guard match == endpoint else {
+				return nil
 			}
-			let url = URL(fileURLWithPath: path)
-			let data = try Data(contentsOf: url)
-			return try endpoint.decode(from: data)
+			return try endpoint.decode(withFilePath: path)
+		}
+	}
+
+	@discardableResult
+	func registerMockEndpoint<T: APIEndpoint>(withFilePath path: String, type: T.Type) -> Any {
+		registerMockEndpoint { (endpoint: T) in
+			return try endpoint.decode(withFilePath: path)
 		}
 	}
 
@@ -65,5 +70,17 @@ public extension MockAPIClient {
 				return "Mock file not found \(string)"
 			}
 		}
+	}
+}
+
+private extension APIEndpoint {
+
+	func decode(withFilePath path: String) throws -> Response {
+		guard FileManager.default.fileExists(atPath: path) else {
+			throw MockAPIClient.MockError.fileNotFound(path)
+		}
+		let url = URL(fileURLWithPath: path)
+		let data = try Data(contentsOf: url)
+		return try decode(from: data)
 	}
 }
