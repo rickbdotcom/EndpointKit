@@ -10,6 +10,10 @@ import Foundation
 public class MockAPIClient: APIClientProtocol {
 
 	var endpointHandlers = [UUID: Any]()
+
+	public init() {
+
+	}
 }
 
 public extension MockAPIClient {
