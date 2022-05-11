@@ -68,7 +68,7 @@ public extension APIEndpoint where Response == Data {
 	}
 }
 
-public enum HTTPMethod: String {
+public enum HTTPMethod: String, Equatable {
 	case get = "GET"
 	case post = "POST"
 	case put = "PUT"
@@ -85,7 +85,16 @@ public enum HTTPMethod: String {
 	}
 }
 
-public struct Endpoint: ExpressibleByStringLiteral {
+public struct Endpoint: Equatable, ExpressibleByStringLiteral {
+	public static func == (lhs: Endpoint, rhs: Endpoint) -> Bool {
+		lhs.path == rhs.path &&
+		lhs.method == rhs.method &&
+		lhs.headers == rhs.headers
+// TODO
+//		lhs.encoder == rhs.encoder &&
+//		lhs.decoder == rhs.decoder
+	}
+
 	public let path: String
 	public let method: HTTPMethod
 	public let headers: [String: String]?
