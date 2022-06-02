@@ -66,7 +66,7 @@ public struct URLParameterEncoder: ParameterEncoder {
 	}
 }
 
-public class FormEncoder: ParameterEncoder {
+public struct FormEncoder: ParameterEncoder {
 	let encoder: JSONEncoder
 
 	public init(encoder: JSONEncoder = JSONEncoder()) {
