@@ -42,7 +42,7 @@ public extension APIEndpoint where Parameters == Data {
 
  	func request(baseURL: URL) throws -> URLRequest {
 		var request = try endpoint.request(baseURL: baseURL)
-		try request.encode(parameters, with: OctetStreamParameterEncoder())
+		try request.encode(parameters, with: DataParameterEncoder())
 		return request
 	}
 }

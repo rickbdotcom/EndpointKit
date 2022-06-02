@@ -32,15 +32,21 @@ public extension ParameterEncoder {
 	}
 }
 
-struct OctetStreamParameterEncoder: ParameterEncoder {
+public struct DataParameterEncoder: ParameterEncoder {
 
+	public let contentType: String
+
+	public init(contentType: String = "application/octet-stream") {
+		self.contentType = contentType
+	}
+	
 	public func encode<T: Encodable>(parameters: T, in request: URLRequest) throws -> URLRequest {
 		throw ParameterEncoderError.cantEncodeJSON
 	}
 
 	public func encode(parameters: Data, in request: URLRequest) throws -> URLRequest {
 		var modifiedRequest = request
-		modifiedRequest.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
+		modifiedRequest.setValue(contentType, forHTTPHeaderField: "Content-Type")
 		modifiedRequest.httpBody = parameters
 		return modifiedRequest
 	}
