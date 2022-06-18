@@ -40,9 +40,26 @@ public extension APIEndpoint where Parameters: Encodable {
 
 public extension APIEndpoint where Parameters == Data {
 
- 	func request(baseURL: URL) throws -> URLRequest {
+	func request(baseURL: URL) throws -> URLRequest {
 		var request = try endpoint.request(baseURL: baseURL)
-		try request.encode(parameters, with: DataParameterEncoder())
+		do {
+			try request.encode(parameters, with: endpoint.encoder)
+		} catch {
+			try request.encode(parameters, with: DataParameterEncoder())
+		}
+		return request
+	}
+}
+
+public extension APIEndpoint where Parameters == [String: Any] {
+
+	func request(baseURL: URL) throws -> URLRequest {
+		var request = try endpoint.request(baseURL: baseURL)
+		do {
+			try request.encode(parameters, with: endpoint.encoder)
+		} catch {
+			try request.encode(parameters, with: DictionaryParameterEncoder())
+		}
 		return request
 	}
 }
@@ -64,7 +81,22 @@ public extension APIEndpoint where Response: Decodable {
 public extension APIEndpoint where Response == Data {
 
 	func decode(from data: Data) throws -> Response {
-		data
+		do {
+			return try endpoint.decoder.decode(from: data)
+		} catch {
+			return try DataResponseDecoder().decode(from: data)
+		}
+	}
+}
+
+public extension APIEndpoint where Response == [String: Any] {
+
+	func decode(from data: Data) throws -> Response {
+		do {
+			return try endpoint.decoder.decode(from: data)
+		} catch {
+			return try DictionaryResponseDecoder().decode(from: data)
+		}
 	}
 }
 
@@ -138,44 +170,44 @@ public extension Endpoint {
 }
 
 extension JSONDecoder.DateDecodingStrategy {
-    static let customISO8601 = custom {
-        let container = try $0.singleValueContainer()
-        let string = try container.decode(String.self)
-        if let date = Formatter.iso8601withFractionalSeconds.date(from: string) ?? Formatter.iso8601.date(from: string) {
-            return date
-        }
-        throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date: \(string)")
-    }
+	static let customISO8601 = custom {
+		let container = try $0.singleValueContainer()
+		let string = try container.decode(String.self)
+		if let date = Formatter.iso8601withFractionalSeconds.date(from: string) ?? Formatter.iso8601.date(from: string) {
+			return date
+		}
+		throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid date: \(string)")
+	}
 }
 
 extension JSONEncoder.DateEncodingStrategy {
-    static let customISO8601 = custom {
-        var container = $1.singleValueContainer()
-        try container.encode(Formatter.iso8601withFractionalSeconds.string(from: $0))
-    }
+	static let customISO8601 = custom {
+		var container = $1.singleValueContainer()
+		try container.encode(Formatter.iso8601withFractionalSeconds.string(from: $0))
+	}
 }
 
 extension Formatter {
-    static let iso8601withFractionalSeconds: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter
-    }()
-    static let iso8601: ISO8601DateFormatter = {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime]
-        return formatter
-    }()
+	static let iso8601withFractionalSeconds: ISO8601DateFormatter = {
+		let formatter = ISO8601DateFormatter()
+		formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+		return formatter
+	}()
+	static let iso8601: ISO8601DateFormatter = {
+		let formatter = ISO8601DateFormatter()
+		formatter.formatOptions = [.withInternetDateTime]
+		return formatter
+	}()
 }
 
 public let defaultEncoder: JSONEncoder = {
-    let encoder = JSONEncoder()
-    encoder.dateEncodingStrategy = .customISO8601
-    return encoder
+	let encoder = JSONEncoder()
+	encoder.dateEncodingStrategy = .customISO8601
+	return encoder
 }()
 
 public let defaultDecoder: JSONDecoder = {
-    let decoder = JSONDecoder()
-    decoder.dateDecodingStrategy = .customISO8601
-    return decoder
+	let decoder = JSONDecoder()
+	decoder.dateDecodingStrategy = .customISO8601
+	return decoder
 }()

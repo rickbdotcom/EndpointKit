@@ -7,28 +7,34 @@
 
 import Foundation
 
-enum ParameterEncoderError: LocalizedError {
-	case cantEncodeData
-	case cantEncodeJSON
-
-	var errorDescription: String? {
-		switch self {
-		case .cantEncodeData:
-			return "Can't encode Data"
-		case .cantEncodeJSON:
-			return "Can't encode JSON"
-		}
-	}
+enum EncodingError: Error {
+	case cantEncodeParameters
+	case cantDecodeResponse
 }
 
 public protocol ParameterEncoder {
 	func encode<T: Encodable>(parameters: T, in request: URLRequest) throws -> URLRequest
-	func encode(parameters: Data, in request: URLRequest) throws -> URLRequest
+	func encode<T>(parameters: T, in request: URLRequest) throws -> URLRequest
 }
 
 public extension ParameterEncoder {
-	func encode(parameters: Data, in request: URLRequest) throws -> URLRequest {
-		throw ParameterEncoderError.cantEncodeData
+
+	func encode<T: Encodable>(parameters: T, in request: URLRequest) throws -> URLRequest {
+		throw EncodingError.cantEncodeParameters
+	}
+
+	func encode<T>(parameters: T, in request: URLRequest) throws -> URLRequest {
+		throw EncodingError.cantEncodeParameters
+	}
+}
+
+public struct DictionaryParameterEncoder: ParameterEncoder {
+
+	public func encode<T>(parameters: T, in request: URLRequest) throws -> URLRequest {
+		var modifiedRequest = request
+		modifiedRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+		modifiedRequest.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+		return modifiedRequest
 	}
 }
 
@@ -40,11 +46,10 @@ public struct DataParameterEncoder: ParameterEncoder {
 		self.contentType = contentType
 	}
 	
-	public func encode<T: Encodable>(parameters: T, in request: URLRequest) throws -> URLRequest {
-		throw ParameterEncoderError.cantEncodeJSON
-	}
-
-	public func encode(parameters: Data, in request: URLRequest) throws -> URLRequest {
+	public func encode<T>(parameters: T, in request: URLRequest) throws -> URLRequest {
+		guard let parameters = parameters as? Data else {
+			throw EncodingError.cantEncodeParameters
+		}
 		var modifiedRequest = request
 		modifiedRequest.setValue(contentType, forHTTPHeaderField: "Content-Type")
 		modifiedRequest.httpBody = parameters
@@ -156,13 +161,45 @@ extension URLRequest {
 		self = try encoder.encode(parameters: parameters, in: self)
 	}
 
-	mutating func encode(_ parameters: Data, with encoder: ParameterEncoder) throws {
+	mutating func encode<T>(_ parameters: T, with encoder: ParameterEncoder) throws {
 		self = try encoder.encode(parameters: parameters, in: self)
 	}
 }
 
 public protocol ResponseDecoder {
 	func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T
+	func decode<T>(from data: Data) throws -> T
+}
+
+public extension ResponseDecoder {
+
+	func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+		throw EncodingError.cantDecodeResponse
+	}
+
+	func decode<T>(from data: Data) throws -> T {
+		throw EncodingError.cantDecodeResponse
+	}
+}
+
+public struct DataResponseDecoder: ResponseDecoder {
+
+	public func decode<T>(from data: Data) throws -> T {
+		guard let response = data as? T else {
+			throw EncodingError.cantDecodeResponse
+		}
+		return response
+	}
+}
+
+public struct DictionaryResponseDecoder: ResponseDecoder {
+
+	public func decode<T>(from data: Data) throws -> T {
+		guard let object = try JSONSerialization.jsonObject(with: data) as? T else {
+			throw EncodingError.cantDecodeResponse
+		}
+		return object
+	}
 }
 
 public extension JSONDecoder {
@@ -190,7 +227,7 @@ class StringDecoder: ResponseDecoder {
 		if let string = String(data: data, encoding: .utf8) as? T {
 			return string
 		} else {
-			throw Error.stringDecodeError
+			throw EncodingError.cantDecodeResponse
 		}
 	}
 }
