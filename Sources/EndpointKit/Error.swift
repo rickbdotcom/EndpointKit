@@ -54,11 +54,11 @@ extension Error {
 	}
 }
 
-struct HTTPError: LocalizedError {
-	let data: Data
-	let response: HTTPURLResponse
+public struct HTTPError: LocalizedError {
+	public let data: Data
+	public let response: HTTPURLResponse
 
-	var errorDescription: String? {
+	public var errorDescription: String? {
 		"HTTP Error: \(response.statusCode)"
 	}
 }
