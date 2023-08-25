@@ -1,9 +1,9 @@
 //
 //  APIEndpoint.swift
-//  EndpointKit
+//  AmericanCoreNetworking
 //
 //  Created by Richard Burgess on 6/13/2023
-//  
+//
 //
 
 import Foundation
@@ -31,5 +31,30 @@ public protocol APIEndpoint {
     func request(baseURL: URL) throws -> URLRequest
 
     /// Decodes the data response from this endpoint
-    func decode(from: Data) throws -> Response
+    func decode(response: URLResponse, data: Data) throws -> Response
+
+    /// Specifies how to encode the parameter into a URLRequest
+    var parameterEncoder: any ParameterEncoder<Parameters> { get }
+
+    // Specifies how to decode the response
+    var responseDecoder: any ResponseDecoder<Response> { get }
+}
+
+public protocol APIEndpointClient {
+    func request<T: APIEndpoint>(_ endpoint: T) async throws -> T.Response
+}
+
+public extension APIEndpoint where Parameters == Void {
+    var parameters: Void { () }
+}
+
+public extension APIEndpoint {
+
+    func request(baseURL: URL) throws -> URLRequest {
+        try parameterEncoder.encode(parameters, into: endpoint.request(baseURL: baseURL))
+    }
+
+    func decode(response: URLResponse, data: Data) throws -> Response {
+        try responseDecoder.decode(response: response, data: data)
+    }
 }

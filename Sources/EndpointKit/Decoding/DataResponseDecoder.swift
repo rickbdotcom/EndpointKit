@@ -1,26 +1,17 @@
 //
 //  DataResponseDecoder.swift
-//  EndpointKit
+//  AmericanCoreNetworking
 //
 //  Created by Richard Burgess on 6/13/2023
-//  
 //
 
 import Foundation
 
-/// Decode response as Data
+/// Returns data from response directly
 public struct DataResponseDecoder: ResponseDecoder {
-
-    public func decode<T>(from data: Data) throws -> T {
-        guard let response = data as? T else {
-            throw DecodeError.responseIsNotData
-        }
-        return response
-    }
-}
-
-public extension DataResponseDecoder {
-    enum DecodeError: Error {
-        case responseIsNotData
+    public typealias Response = Data
+    
+    public func decode(response: URLResponse, data: Data) throws -> Response {
+        data
     }
 }

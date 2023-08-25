@@ -1,23 +1,24 @@
 //
 //  URLParameterEncoder.swift
-//  EndpointKit
+//  AmericanCoreNetworking
 //
 //  Created by Richard Burgess on 6/13/2023
-//  
 //
 
 import Foundation
 
 /// Encodes parameters into URL query, i.e. ?item=1&next=2
 /// Doesn't currently handling array encoding, i.e. ?item[0]=first&item[1]=second
-public struct URLParameterEncoder: ParameterEncoder {
+public struct URLParameterEncoder<T: Encodable>: ParameterEncoder {
+    public typealias Parameters = T
+    
     let encoder: JSONEncoder
 
     public init(encoder: JSONEncoder = JSONEncoder()) {
         self.encoder = encoder
     }
 
-    public func encode<T: Encodable>(parameters: T, in request: URLRequest) throws -> URLRequest {
+    public func encode(_ parameters: Parameters, into request: URLRequest) throws -> URLRequest {
         var modifiedRequest = request
         modifiedRequest.url = try modifiedRequest.url?.addQueryItems(encoder.encodeToQuery(parameters))
         return modifiedRequest

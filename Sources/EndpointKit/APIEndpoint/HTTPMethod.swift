@@ -1,9 +1,8 @@
 //
 //  HTTPMethod.swift
-//  EndpointKit
+//  AmericanCoreNetworking
 //
 //  Created by Richard Burgess on 6/13/2023
-//  
 //
 import Foundation
 

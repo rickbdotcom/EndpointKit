@@ -1,9 +1,8 @@
 //
 //  URLSession+APIEndpoint.swift
-//  EndpointKit
+//  AmericanCoreNetworking
 //
 //  Created by Richard Burgess on 6/13/2023
-//  
 //
 
 import Foundation
@@ -19,15 +18,19 @@ public extension URLRequestDataProvider {
     func request<T: APIEndpoint>(_ endpoint: T, baseURL: URL, validate: ((Data, URLResponse) throws -> Void)? = nil) async throws -> T.Response {
         let request = try endpoint.request(baseURL: baseURL)
         let (data, response) = try await data(for: request)
-        try (validate ??  defaultResponseValidation)(data, response)
-        return try endpoint.decode(from: data)
+        try (validate ?? defaultResponseValidation)(data, response)
+        return try endpoint.decode(response: response, data: data)
     }
 }
 
 extension URLSession: URLRequestDataProvider {
     /// URLSession URLRequestDataProvider conformance
     public func data(for urlRequest: URLRequest) async throws -> (Data, URLResponse) {
-        try await data(for: urlRequest, delegate: nil)
+        if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) {
+            return try await data(for: urlRequest, delegate: nil)
+        } else { // need to update minimum deployment target to watchOS 8.0 already
+            throw UnavailableError()
+        }
     }
 }
 
