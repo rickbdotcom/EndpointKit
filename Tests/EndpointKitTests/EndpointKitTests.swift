@@ -1,6 +1,6 @@
 //
 //  EndpointTests.swift
-//  AmericanCoreNetworkingTests
+//
 //
 //  Created by rickb on 6/14/23.
 //
