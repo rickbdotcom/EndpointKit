@@ -27,6 +27,21 @@ public struct Endpoint {
     }
 }
 
+extension Endpoint: ExpressibleByStringLiteral {
+
+    public init(stringLiteral: StringLiteralType) {
+        let comps = stringLiteral.components(separatedBy: " ")
+        guard comps.count == 2,
+              let method = HTTPMethod(rawValue: comps[0]) else {
+            preconditionFailure("Invalid Endpoint string: \(stringLiteral)")
+        }
+
+        self.path = comps[1]
+        self.method = method
+        self.headers = nil
+    }
+}
+
 extension Endpoint {
 
     /// Constructs URLRequest from endpoint

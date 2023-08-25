@@ -1,6 +1,6 @@
 //
 //  EndpointTests.swift
-//
+//  AmericanCoreNetworkingTests
 //
 //  Created by rickb on 6/14/23.
 //
@@ -8,7 +8,6 @@
 
 import Foundation
 import XCTest
-
 @testable import EndpointKit
 
 enum API {
@@ -23,7 +22,7 @@ enum API {
             let refreshToken: String
         }
 
-        let endpoint = Endpoint("/login", .post)
+        let endpoint: Endpoint = "POST /login"
         var parameters: Parameters
     }
 
@@ -31,6 +30,7 @@ enum API {
         struct Parameters: Encodable {
             let action: String
         }
+        typealias Response = Void
 
         let endpoint = Endpoint("/track", .get, headers: headers)
         var parameters: Parameters
@@ -43,8 +43,12 @@ enum API {
         }
         typealias Response = String
 
-        let endpoint = Endpoint("/form", .post, encoder: form)
+        let endpoint: Endpoint = "POST /form"
         var parameters: Parameters
+
+        var parameterEncoder: any ParameterEncoder<Parameters> {
+            FormParameterEncoder()
+        }
     }
 
     struct Poll: APIEndpoint {
@@ -54,24 +58,31 @@ enum API {
 
         var endpoint: Endpoint { .init("/poll/\(pollId)", .post) }
         var parameters: Parameters
+
+        var parameterEncoder: any ParameterEncoder<Parameters> {
+            SerializedJSONParameterEncoder()
+        }
+        var responseDecoder: any ResponseDecoder<Response> {
+            SerializedJSONResponseDecoder()
+        }
     }
 
     struct ImageUpload: APIEndpoint {
         typealias Parameters = Data
+        typealias Response = Void
 
-        let endpoint = Endpoint("/upload", .post)
+        let endpoint: Endpoint = "POST /upload"
         var parameters: Parameters
     }
 
     struct ImageDownload: APIEndpoint {
         typealias Response = Data
 
-        let endpoint = Endpoint("/download", .get)
+        let endpoint: Endpoint = "GET /download"
     }
 
     static let baseURL = URL(string: "https://www.aa.com")!
 
-    static let form = FormParameterEncoder()
     static let headers = ["pageName": "home"]
 }
 
