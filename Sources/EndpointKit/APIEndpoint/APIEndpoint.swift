@@ -1,6 +1,5 @@
 //
 //  APIEndpoint.swift
-//  
 //
 //  Created by Richard Burgess on 6/13/2023
 //

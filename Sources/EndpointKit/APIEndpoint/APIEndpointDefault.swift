@@ -33,18 +33,18 @@ public extension APIEndpoint where Response == Void {
 
 public extension APIEndpoint where Response: Decodable {
     var responseDecoder: any ResponseDecoder<Response> {
-        JSONDecodableResponseDecoder()
+        JSONDecodableResponseDecoder().httpValidate()
     }
 }
 
 public extension APIEndpoint where Response == Data {
     var responseDecoder: any ResponseDecoder<Response> {
-        DataResponseDecoder()
+        DataResponseDecoder().httpValidate()
     }
 }
 
 public extension APIEndpoint where Response == String {
     var responseDecoder: any ResponseDecoder<Response> {
-        StringResponseDecoder()
+        StringResponseDecoder().httpValidate()
     }
 }

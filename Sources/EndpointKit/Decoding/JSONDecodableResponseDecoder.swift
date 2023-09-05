@@ -1,6 +1,5 @@
 //
 //  JSONDecodableResponseDecoder.swift
-//  
 //
 //  Created by Richard Burgess on 6/13/2023
 //
@@ -8,7 +7,7 @@
 import Foundation
 
 /// Decode response as JSON Decodable
-public struct JSONDecodableResponseDecoder<T:Decodable>: ResponseDecoder {
+public struct JSONDecodableResponseDecoder<T: Decodable>: ResponseDecoder {
     public typealias Response = T
 
     let decoder: JSONDecoder

@@ -34,6 +34,16 @@ enum API {
 
         let endpoint = Endpoint("/track", .get, headers: headers)
         var parameters: Parameters
+
+        var responseDecoder: any ResponseDecoder<Void> {
+            EmptyResponseDecoder().httpValidate().validate { response, data in
+                throw try JSONDecoder().decode(CustomError.self, from: data)
+            }
+        }
+    }
+
+    struct CustomError: Error, Decodable {
+        let errorCode: Int
     }
 
     struct Form: APIEndpoint {
@@ -200,18 +210,10 @@ final class EndpointTests: XCTestCase {
             action: "login"
         ))
 
-        struct CustomError: Error, Decodable {
-            let errorCode: Int
-        }
-
         do {
-            try await dataProvider.request(track, baseURL: API.baseURL) { data, response in
-                if let error = try? JSONDecoder().decode(CustomError.self, from: data) {
-                    throw error
-                }
-            }
+            try await dataProvider.request(track, baseURL: API.baseURL)
             XCTFail("Should have failed")
-        } catch let error as CustomError {
+        } catch let error as API.CustomError {
             XCTAssertEqual(error.errorCode, 1)
         } catch {
             XCTFail("unknown error")
