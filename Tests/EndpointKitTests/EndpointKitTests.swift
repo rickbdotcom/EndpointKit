@@ -37,6 +37,7 @@ enum API {
 
         var responseDecoder: any ResponseDecoder<Void> {
             EmptyResponseDecoder().httpValidate().validate { response, data in
+                if data.isEmpty { return }
                 throw try JSONDecoder().decode(CustomError.self, from: data)
             }
         }
