@@ -27,7 +27,7 @@ public extension APIEndpoint where Parameters == Data {
 
 public extension APIEndpoint where Response == Void {
     var responseDecoder: any ResponseDecoder<Response> {
-        EmptyResponseDecoder()
+        EmptyResponseDecoder().httpValidate()
     }
 }
 
