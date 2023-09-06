@@ -10,5 +10,5 @@ import Foundation
 public protocol ResponseDecoder<Response> {
     associatedtype Response
 
-    func decode(response: URLResponse, data: Data) throws -> Response
+    func decode(response: URLResponse, data: Data) async throws -> Response
 }

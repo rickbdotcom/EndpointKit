@@ -27,10 +27,10 @@ public protocol APIEndpoint {
     var endpoint: Endpoint { get }
 
     /// Creates a URL request relative to baseURL passed in
-    func request(baseURL: URL) throws -> URLRequest
+    func request(baseURL: URL) async throws -> URLRequest
 
     /// Decodes the data response from this endpoint
-    func decode(response: URLResponse, data: Data) throws -> Response
+    func decode(response: URLResponse, data: Data) async throws -> Response
 
     /// Specifies how to encode the parameter into a URLRequest
     var parameterEncoder: any ParameterEncoder<Parameters> { get }
@@ -49,11 +49,11 @@ public extension APIEndpoint where Parameters == Void {
 
 public extension APIEndpoint {
 
-    func request(baseURL: URL) throws -> URLRequest {
-        try parameterEncoder.encode(parameters, into: endpoint.request(baseURL: baseURL))
+    func request(baseURL: URL) async throws -> URLRequest {
+        try await parameterEncoder.encode(parameters, into: endpoint.request(baseURL: baseURL))
     }
 
-    func decode(response: URLResponse, data: Data) throws -> Response {
-        try responseDecoder.decode(response: response, data: data)
+    func decode(response: URLResponse, data: Data) async throws -> Response {
+        try await responseDecoder.decode(response: response, data: data)
     }
 }

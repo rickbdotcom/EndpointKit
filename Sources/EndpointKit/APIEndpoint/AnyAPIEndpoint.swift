@@ -7,15 +7,13 @@
 
 import Foundation
 
-public struct AnyAPIEndpoint<T: APIEndpoint>: APIEndpoint {
-    public typealias Parameters = T.Parameters
-    public typealias Response = T.Response
-
-    public var parameters: T.Parameters
+/// type erased APIEndpoint
+public struct AnyAPIEndpoint<Parameters, Response>: APIEndpoint {
+    public var parameters: Parameters
     public var endpoint: Endpoint
 
-    public var parameterEncoder: any ParameterEncoder<T.Parameters>
-    public var responseDecoder: any ResponseDecoder<T.Response>
+    public var parameterEncoder: any ParameterEncoder<Parameters>
+    public var responseDecoder: any ResponseDecoder<Response>
 
     public init(
         parameters: Parameters,
@@ -40,7 +38,7 @@ public struct AnyAPIEndpoint<T: APIEndpoint>: APIEndpoint {
 
 public extension APIEndpoint {
 
-    func any() -> AnyAPIEndpoint<Self> {
+    func any() -> AnyAPIEndpoint<Parameters, Response> {
         AnyAPIEndpoint(self)
     }
 }

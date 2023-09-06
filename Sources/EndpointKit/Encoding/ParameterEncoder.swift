@@ -10,5 +10,5 @@ import Foundation
 public protocol ParameterEncoder<Parameters> {
     associatedtype Parameters
 
-    func encode(_ parameters: Parameters, into request: URLRequest) throws -> URLRequest
+    func encode(_ parameters: Parameters, into request: URLRequest) async throws -> URLRequest
 }

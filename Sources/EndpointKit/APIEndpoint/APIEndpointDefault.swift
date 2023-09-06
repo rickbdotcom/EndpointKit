@@ -27,24 +27,24 @@ public extension APIEndpoint where Parameters == Data {
 
 public extension APIEndpoint where Response == Void {
     var responseDecoder: any ResponseDecoder<Response> {
-        EmptyResponseDecoder().httpValidate()
+        EmptyResponseDecoder().validateHTTP()
     }
 }
 
 public extension APIEndpoint where Response: Decodable {
     var responseDecoder: any ResponseDecoder<Response> {
-        JSONDecodableResponseDecoder().httpValidate()
+        JSONDecodableResponseDecoder().validateHTTP()
     }
 }
 
 public extension APIEndpoint where Response == Data {
     var responseDecoder: any ResponseDecoder<Response> {
-        DataResponseDecoder().httpValidate()
+        DataResponseDecoder().validateHTTP()
     }
 }
 
 public extension APIEndpoint where Response == String {
     var responseDecoder: any ResponseDecoder<Response> {
-        StringResponseDecoder().httpValidate()
+        StringResponseDecoder().validateHTTP()
     }
 }
