@@ -2,7 +2,7 @@
 //  File.swift
 //  
 //
-//  Created by Burgess, Rick (CHICO-C) on 9/6/23.
+//  Created by Burgess, Rick  on 9/6/23.
 //
 
 import Foundation

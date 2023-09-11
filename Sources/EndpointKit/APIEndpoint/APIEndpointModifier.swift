@@ -1,8 +1,8 @@
-//
+////
 //  File.swift
-//  
 //
-//  Created by Burgess, Rick (CHICO-C) on 9/6/23.
+//
+//  Created by Burgess, Rick  on 9/6/23.
 //
 
 import Foundation
@@ -19,7 +19,7 @@ public extension APIEndpoint {
 
     func modify(_ modifiers: [APIEndpointModifier]) -> AnyAPIEndpoint<Parameters, Response> {
         var endpoint = AnyAPIEndpoint(self)
-        for modifier in modifiers  {
+        for modifier in modifiers {
             endpoint = endpoint.modify(modifier)
         }
         return endpoint
@@ -28,7 +28,7 @@ public extension APIEndpoint {
 
 public extension APIEndpointModifier where Self == APIEndpointParameterModifier {
     static func headers(_ headers: [String : String]) -> Self {
-        guard #available(iOS 16.0.0, watchOS 9.0.0, macOS 13.0.0, *) else { fatalError() }
+        guard #available(iOS 16.0.0, watchOS 9.0.0, *) else { fatalError() }
         return APIEndpointParameterModifier { $0.add(headers: headers) }
     }
 }
@@ -36,7 +36,7 @@ public extension APIEndpointModifier where Self == APIEndpointParameterModifier 
 public extension APIEndpointModifier where Self == APIEndpointResponseModifier {
 
     static func validateHTTP() -> Self {
-        guard #available(iOS 16.0.0, watchOS 9.0.0, macOS 13.0.0, *) else { fatalError() }
+        guard #available(iOS 16.0.0, watchOS 9.0.0, *) else { fatalError() }
         return APIEndpointResponseModifier { $0.validateHTTP() }
     }
 }
@@ -48,8 +48,16 @@ public struct APIEndpointParameterModifier: APIEndpointModifier {
         self.parameterEncoder = parameterEncoder
     }
 
+    public init<T>(_ encode: @escaping (any ParameterEncoder, T, URLRequest) async throws -> URLRequest) {
+        parameterEncoder = { encoder in
+            AnyParameterEncoder { parameters, request in
+                try await encode(encoder, parameters, request)
+            }
+        }
+    }
+
     public func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<T.Parameters, T.Response> {
-        guard #available(iOS 16.0.0, watchOS 9.0.0, macOS 13.0.0, *) else { fatalError() }
+        guard #available(iOS 16.0.0, watchOS 9.0.0, *) else { fatalError() }
 
         var modifiedEndpoint = apiEndpoint.any()
         let encoder = modifiedEndpoint.parameterEncoder
@@ -67,8 +75,16 @@ public struct APIEndpointResponseModifier: APIEndpointModifier {
         self.responseDecoder = responseDecoder
     }
 
+    public init<T>(_ decode: @escaping (any ResponseDecoder, URLResponse, Data) async throws -> T) {
+        responseDecoder = { decoder in
+            AnyResponseDecoder { response, data in
+               try await decode(decoder, response, data)
+            }
+        }
+    }
+
     public func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<T.Parameters, T.Response> {
-        guard #available(iOS 16.0.0, watchOS 9.0.0, macOS 13.0.0, *) else { fatalError() }
+        guard #available(iOS 16.0.0, watchOS 9.0.0, *) else { fatalError() }
 
         var modifiedEndpoint = apiEndpoint.any()
         let decoder = modifiedEndpoint.responseDecoder
