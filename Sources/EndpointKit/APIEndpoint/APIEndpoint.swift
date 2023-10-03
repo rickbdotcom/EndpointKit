@@ -50,7 +50,7 @@ public extension APIEndpoint where Parameters == Void {
 public extension APIEndpoint {
 
     func request(baseURL: URL) async throws -> URLRequest {
-        try await parameterEncoder.encode(parameters, into: endpoint.request(baseURL: baseURL))
+        try await parameterEncoder.encode(parameters, into: URLRequest(baseURL: baseURL, endpoint: endpoint))
     }
 
     func decode(response: URLResponse, data: Data) async throws -> Response {

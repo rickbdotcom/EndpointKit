@@ -22,8 +22,8 @@ enum API {
             let refreshToken: String
         }
 
-        let endpoint: Endpoint = "POST /login"
-        var parameters: Parameters
+        let endpoint = Endpoint(.post, "/login")
+        let parameters: Parameters
     }
 
     struct Track: APIEndpoint {
@@ -32,8 +32,8 @@ enum API {
         }
         typealias Response = Void
 
-        let endpoint = Endpoint("/track", .get, headers: headers)
-        var parameters: Parameters
+        let endpoint = Endpoint(.get, "/track")
+        let parameters: Parameters
 
         var responseDecoder: any ResponseDecoder<Void> {
             EmptyResponseDecoder()
@@ -53,8 +53,8 @@ enum API {
         }
         typealias Response = String
 
-        let endpoint: Endpoint = "POST /form"
-        var parameters: Parameters
+        let endpoint = Endpoint(.post, "/form")
+        let parameters: Parameters
 
         var parameterEncoder: any ParameterEncoder<Parameters> {
             FormParameterEncoder()
@@ -66,8 +66,8 @@ enum API {
         typealias Parameters = [String: Any]
         typealias Response = [String: Int]
 
-        var endpoint: Endpoint { .init("/poll/\(pollId)", .post) }
-        var parameters: Parameters
+        var endpoint: Endpoint { .init(.post, "/poll/\(pollId)") }
+        let parameters: Parameters
 
         var parameterEncoder: any ParameterEncoder<Parameters> {
             SerializedJSONParameterEncoder()
@@ -81,17 +81,17 @@ enum API {
         typealias Parameters = Data
         typealias Response = Void
 
-        let endpoint: Endpoint = "POST /upload"
-        var parameters: Parameters
+        let endpoint = Endpoint(.post, "/upload")
+        let parameters: Parameters
     }
 
     struct ImageDownload: APIEndpoint {
         typealias Response = Data
 
-        let endpoint: Endpoint = "GET /download"
+        let endpoint = Endpoint(.get, "/download")
     }
 
-    static let baseURL = URL(string: "https://www.aa.com")!
+    static let baseURL = URL(string: "https://www.rickb.com")!
 
     static let headers = ["pageName": "home"]
 }
@@ -101,49 +101,54 @@ final class EndpointTests: XCTestCase {
     func testJSONParameterEncoder() async throws {
         let parameters = API.Login.Parameters(username: "traveler123", password: "test123")
         let body = try! String(data: JSONEncoder().encode(parameters), encoding: .utf8)
+        let login = API.Login(parameters: parameters)
         try await endpointRequestMatches(
-            API.Login(parameters: parameters),
+            login,
             baseURL: API.baseURL,
-            matchingURL: "https://www.aa.com/login",
+            matchingURL: "https://www.rickb.com/login",
             matchingBody: body
         )
     }
 
     func testURLParameterEncoder() async throws {
+        let track = API.Track(parameters: .init(
+            action: "login"
+        ))
         try await endpointRequestMatches(
-            API.Track(parameters: .init(
-                action: "login"
-            )),
+            track,
             baseURL: API.baseURL,
-            matchingURL: "https://www.aa.com/track?action=login"
+            matchingURL: "https://www.rickb.com/track?action=login"
         )
     }
 
     func testFormParameterEncoder() async throws {
+        let form = API.Form(parameters: .init(
+            username: "traveler123", password: "test123"
+        ))
         try await endpointRequestMatches(
-            API.Form(parameters: .init(
-                username: "traveler123", password: "test123"
-            )),
+            form,
             baseURL: API.baseURL,
-            matchingURL: "https://www.aa.com/form",
+            matchingURL: "https://www.rickb.com/form",
             matchingBody: "password=test123&username=traveler123"
         )
     }
 
     func testDictionaryParameterEncoder() async throws {
+        let poll = API.Poll(pollId: "1", parameters: ["blueGoldDress": "blue"])
         try await endpointRequestMatches(
-            API.Poll(pollId: "1", parameters: ["blueGoldDress": "blue"]),
+            poll,
             baseURL: API.baseURL,
-            matchingURL: "https://www.aa.com/poll/1",
+            matchingURL: "https://www.rickb.com/poll/1",
             matchingBody: "{\"blueGoldDress\":\"blue\"}"
         )
     }
 
     func testDataParameterEncoder() async throws {
+        let upload = API.ImageUpload(parameters: "123".data(using: .utf8)!) // swiftlint:disable:this force_unwrap
         try await endpointRequestMatches(
-            API.ImageUpload(parameters: "123".data(using: .utf8)!), // swiftlint:disable:this force_unwrap
+            upload,
             baseURL: API.baseURL,
-            matchingURL: "https://www.aa.com/upload",
+            matchingURL: "https://www.rickb.com/upload",
             matchingBody: "123"
         )
     }
@@ -152,16 +157,6 @@ final class EndpointTests: XCTestCase {
         let imageDownload = API.ImageDownload()
         let request = try await imageDownload.request(baseURL: API.baseURL)
         XCTAssertEqual(request.httpBody, nil)
-    }
-
-    func testHeaders() async throws {
-        try await endpointRequestMatches(
-            API.Track(parameters: .init(
-                action: "login"
-            )),
-            baseURL: API.baseURL,
-            matchingHeaders: ["pageName": "home"]
-        )
     }
 
     func testJSONResponseDecoder() async throws {
@@ -209,7 +204,6 @@ final class EndpointTests: XCTestCase {
         let track = API.Track(parameters: .init(
             action: "login"
         ))
-
         do {
             try await dataProvider.request(track, baseURL: API.baseURL)
             XCTFail("Should have failed")
@@ -219,6 +213,17 @@ final class EndpointTests: XCTestCase {
             XCTFail("unknown error")
         }
     }
+
+    func testHeaders() async throws {
+        try await endpointRequestMatches(
+            API.Track(parameters: .init(
+                action: "login"
+            )).modify(.headers(["pageName": "home"])),
+            baseURL: API.baseURL,
+            matchingHeaders: ["pageName": "home"]
+        )
+    }
+
 }
 
 func endpointRequestMatches<T: APIEndpoint>(_ endpoint: T, baseURL: URL, matchingURL url: String? = nil, matchingBody httpBody: String? = nil, matchingHeaders headers: [String: String]? = nil) async throws {
@@ -250,6 +255,6 @@ struct TestDataProvider: URLRequestDataProvider {
     }
 
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        (body.data(using: .utf8) ?? Data(), HTTPURLResponse(url: request.url!, statusCode: statusCode, httpVersion: "1.1", headerFields: nil)!) // swiftlint:disable:this force_unwrap
+        (body.data(using: .utf8)!, HTTPURLResponse(url: request.url!, statusCode: statusCode, httpVersion: "1.1", headerFields: nil)!) // swiftlint:disable:this force_unwrap
     }
 }
