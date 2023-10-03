@@ -70,7 +70,7 @@ public struct APIEndpointParameterModifier<Parameters, Response>: APIEndpointMod
         }
     }
 
-    public func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<T.Parameters, T.Response> where T.Parameters == Parameters, T.Response == Response{
+    public func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<T.Parameters, T.Response> where T.Parameters == Parameters, T.Response == Response {
         var modifiedEndpoint = apiEndpoint.any()
         let encoder = parameterEncoder(modifiedEndpoint.parameterEncoder)
         modifiedEndpoint.parameterEncoder = encoder
