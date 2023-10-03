@@ -10,7 +10,25 @@ import Foundation
 import XCTest
 @testable import EndpointKit
 
+protocol CustomErrorProtocol {
+}
+
 enum API {
+    struct Login: APIEndpoint {
+        struct Parameters: Codable, Equatable {
+            let username: String
+            let password: String
+        }
+
+        struct Response: Decodable, Equatable {
+            let accessToken: String
+            let refreshToken: String
+        }
+
+        let endpoint = Endpoint(.post, "/login")
+        let parameters: Parameters
+    }
+
     struct Track: APIEndpoint {
         struct Parameters: Encodable {
             let action: String
@@ -47,10 +65,10 @@ enum API {
     }
 
     struct Poll: APIEndpoint {
-        let pollId: String
         typealias Parameters = [String: Any]
         typealias Response = [String: Int]
 
+        let pollId: String
         var endpoint: Endpoint { .init(.post, "/poll/\(pollId)") }
         let parameters: Parameters
 
@@ -76,6 +94,13 @@ enum API {
         let endpoint = Endpoint(.get, "/download")
     }
 
+    struct GetStuff: APIEndpoint, CustomErrorProtocol {
+        typealias Parameters = Void
+        typealias Response = Void
+
+        let endpoint = Endpoint(.get, "/getstuff")
+    }
+
     static let baseURL = URL(string: "https://www.rickb.com")!
 
     static let headers = ["pageName": "home"]
@@ -84,23 +109,9 @@ enum API {
 final class EndpointTests: XCTestCase {
 
     func testJSONParameterEncoder() async throws {
-        struct Login: APIEndpoint {
-            struct Parameters: Codable, Equatable {
-                let username: String
-                let password: String
-            }
-
-            struct Response: Decodable, Equatable {
-                let accessToken: String
-                let refreshToken: String
-            }
-
-            let endpoint = Endpoint(.post, "/login")
-            let parameters: Parameters
-        }
-
-        let parameters = Login.Parameters(username: "traveler123", password: "test123")
-        let login = Login(parameters: parameters)
+        let login = API.Login(parameters: .init(
+            username: "traveler123", password: "test123"
+        ))
 
         try await endpointRequestMatches(
             login,
@@ -160,27 +171,12 @@ final class EndpointTests: XCTestCase {
     }
 
     func testJSONResponseDecoder() async throws {
-        struct Login: APIEndpoint {
-            struct Parameters: Codable, Equatable {
-                let username: String
-                let password: String
-            }
-
-            struct Response: Decodable, Equatable {
-                let accessToken: String
-                let refreshToken: String
-            }
-
-            let endpoint = Endpoint(.post, "/login")
-            let parameters: Parameters
-        }
-
         let dataProvider = TestDataProvider(body: "{\"accessToken\": \"123\", \"refreshToken\": \"456\"}")
-        let login = Login(parameters: .init(
+        let login = API.Login(parameters: .init(
             username: "traveler123", password: "test123"
         ))
         let result = try await dataProvider.request(baseURL: API.baseURL, endpoint: login)
-        XCTAssertEqual(result, Login.Response(accessToken: "123", refreshToken: "456"))
+        XCTAssertEqual(result, API.Login.Response(accessToken: "123", refreshToken: "456"))
     }
 
     func testDictionaryResponseDecoder() async throws {
@@ -230,7 +226,7 @@ final class EndpointTests: XCTestCase {
         try await emptyDataProvider.request(baseURL: API.baseURL, endpoint: track)
     }
 
-    func testCustomErrorValidator() async throws {
+    func testModifyErrorValidator() async throws {
         guard #available(iOS 16.0.0, watchOS 9.0.0, *) else {
             throw XCTSkip("Unsupported iOS version")
         }
@@ -250,14 +246,11 @@ final class EndpointTests: XCTestCase {
 
         let track = API.Track(parameters: .init(
             action: "login"
-        )).modify(APIEndpointResponseModifier { decoder, response, data in
-            if let error = try await StringErrorDecoder().decode(response: response, data: data) {
-                throw error
-            }
-            return try await decoder.decode(response: response, data: data)
-        })
-        let stringErrorDataProvider = TestDataProvider(body: "An error!", statusCode: 400)
+        )).modify {
+            $0.validate(error: StringError.self, decoder: StringErrorDecoder())
+        }
 
+        let stringErrorDataProvider = TestDataProvider(body: "An error!", statusCode: 400)
         do {
             try await stringErrorDataProvider.request(baseURL: API.baseURL, endpoint: track)
             XCTFail("Should have failed")
@@ -267,15 +260,50 @@ final class EndpointTests: XCTestCase {
     }
 
     func testHeaders() async throws {
-        if #available(iOS 16.0.0, *) {
-            try await endpointRequestMatches(
-                API.Track(parameters: .init(
-                    action: "login"
-                )).modify(headerModifier(["pageName": "home"])),
-                baseURL: API.baseURL,
-                matchingHeaders: ["pageName": "home"]
-            )
+        guard #available(iOS 16.0.0, watchOS 9.0.0, *) else {
+            throw XCTSkip("Unsupported iOS version")
         }
+        try await endpointRequestMatches(
+            API.Track(parameters: .init(
+                action: "login"
+            )).modify(headerModifier(["pageName": "home"])),
+            baseURL: API.baseURL,
+            matchingHeaders: ["pageName": "home"]
+        )
+    }
+
+    func testModifiers() async throws {
+        guard #available(iOS 16.0.0, watchOS 9.0.0, *) else {
+            throw XCTSkip("Unsupported iOS version")
+        }
+        let getStuff = API.GetStuff()
+        let modifiedEndpoint = getStuff.modify(modifiers(for: getStuff))
+
+        try await endpointRequestMatches(
+            modifiedEndpoint,
+            baseURL: API.baseURL,
+            matchingHeaders: ["a": "b", "c": "d"]
+        )
+        let errorDataProvider = TestDataProvider(body: "{\"errorCode\": 1}")
+        do {
+            try await errorDataProvider.request(baseURL: API.baseURL, endpoint: modifiedEndpoint)
+            XCTFail("Should have failed")
+        } catch let error as API.CustomError {
+            XCTAssertEqual(error.errorCode, 1)
+        }
+    }
+
+    @available(iOS 16.0.0, *)
+    func modifiers<T: APIEndpoint>(for endpoint: T) -> [any APIEndpointModifier<T.Parameters, T.Response>] {
+        var modifiers = [any APIEndpointModifier<T.Parameters, T.Response>]()
+        modifiers.append(headerModifier(["a": "b", "c": "d"]))
+
+        if endpoint is CustomErrorProtocol {
+            modifiers.append(APIEndpointResponseModifier {
+                $0.validate(error: API.CustomError.self)
+            })
+        }
+        return modifiers
     }
 
     func testHTTPError() throws {

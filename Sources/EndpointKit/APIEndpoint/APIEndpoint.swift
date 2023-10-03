@@ -17,9 +17,9 @@ import Foundation
 /// }
 public protocol APIEndpoint<Parameters, Response> {
     /// The parameters passed to the endpoint
-    associatedtype Parameters = Void
+    associatedtype Parameters
     /// The response expected from the endpoint
-    associatedtype Response = Void
+    associatedtype Response
 
     /// parameters
     var parameters: Parameters { get }

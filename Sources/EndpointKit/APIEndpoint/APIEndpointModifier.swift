@@ -29,6 +29,18 @@ public extension APIEndpoint {
         }
         return endpoint
     }
+
+    func modify(parameterEncoder: @escaping (any ParameterEncoder<Parameters>) -> any ParameterEncoder<Parameters>) -> AnyAPIEndpoint<Parameters, Response> {
+        var endpoint = any()
+        endpoint.parameterEncoder = parameterEncoder(endpoint.parameterEncoder)
+        return endpoint
+    }
+
+    func modify(responseDecoder: @escaping (any ResponseDecoder<Response>) -> any ResponseDecoder<Response>) -> AnyAPIEndpoint<Parameters, Response> {
+        var endpoint = any()
+        endpoint.responseDecoder = responseDecoder(endpoint.responseDecoder)
+        return endpoint
+    }
 }
 
 @available(iOS 16.0.0, watchOS 9.0.0, *)
