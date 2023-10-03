@@ -7,18 +7,23 @@
 
 import Foundation
 
-public protocol APIEndpointModifier {
-    func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<T.Parameters, T.Response>
+@available(iOS 16.0.0, watchOS 9.0.0, *)
+public protocol APIEndpointModifier<Parameters, Response> {
+    associatedtype Parameters
+    associatedtype Response
+
+    func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<T.Parameters, T.Response> where T.Parameters == Parameters, T.Response == Response
 }
 
+@available(iOS 16.0.0, watchOS 9.0.0, *)
 public extension APIEndpoint {
 
-    func modify(_ modifier: APIEndpointModifier) -> AnyAPIEndpoint<Parameters, Response> {
-        modifier.modify(self).any()
+    func modify(_ modifier: any APIEndpointModifier<Parameters, Response>) -> AnyAPIEndpoint<Parameters, Response> {
+        modifier.modify(self)
     }
 
-    func modify(_ modifiers: [APIEndpointModifier]) -> AnyAPIEndpoint<Parameters, Response> {
-        var endpoint = AnyAPIEndpoint(self)
+    func modify(_ modifiers: [any APIEndpointModifier<Parameters, Response>]) -> AnyAPIEndpoint<Parameters, Response> {
+        var endpoint = any()
         for modifier in modifiers {
             endpoint = endpoint.modify(modifier)
         }
@@ -26,29 +31,26 @@ public extension APIEndpoint {
     }
 }
 
-public extension APIEndpointModifier where Self == APIEndpointParameterModifier {
-    static func headers(_ headers: [String : String]) -> Self {
-        guard #available(iOS 16.0.0, watchOS 9.0.0, *) else { fatalError() }
-        return APIEndpointParameterModifier { $0.add(headers: headers) }
-    }
+@available(iOS 16.0.0, watchOS 9.0.0, *)
+func headerModifier<Parameters, Response>(_ headers: [String : String]) -> some APIEndpointModifier<Parameters, Response> {
+    return APIEndpointParameterModifier<Parameters, Response> { $0.add(headers: headers) }
 }
 
-public extension APIEndpointModifier where Self == APIEndpointResponseModifier {
-
-    static func validateHTTP() -> Self {
-        guard #available(iOS 16.0.0, watchOS 9.0.0, *) else { fatalError() }
-        return APIEndpointResponseModifier { $0.validateHTTP() }
-    }
+@available(iOS 16.0.0, watchOS 9.0.0, *)
+func validateHTTPModifier<Parameters, Response>() -> some APIEndpointModifier<Parameters, Response> {
+    return APIEndpointResponseModifier<Parameters, Response> { $0.validateHTTP() }
 }
 
-public struct APIEndpointParameterModifier: APIEndpointModifier {
-    let parameterEncoder: (any ParameterEncoder) -> any ParameterEncoder
+@available(iOS 16.0.0, watchOS 9.0.0, *)
+public struct APIEndpointParameterModifier<Parameters, Response>: APIEndpointModifier {
+    public typealias MapEncoder = (any ParameterEncoder<Parameters>) -> any ParameterEncoder<Parameters>
+    let parameterEncoder: MapEncoder
 
-    public init(_ parameterEncoder: @escaping (any ParameterEncoder) -> any ParameterEncoder) {
+    public init(_ parameterEncoder: @escaping MapEncoder) {
         self.parameterEncoder = parameterEncoder
     }
 
-    public init<T>(_ encode: @escaping (any ParameterEncoder, T, URLRequest) async throws -> URLRequest) {
+    public init(_ encode: @escaping (any ParameterEncoder<Parameters>, Parameters, URLRequest) async throws -> URLRequest) {
         parameterEncoder = { encoder in
             AnyParameterEncoder { parameters, request in
                 try await encode(encoder, parameters, request)
@@ -56,41 +58,35 @@ public struct APIEndpointParameterModifier: APIEndpointModifier {
         }
     }
 
-    public func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<T.Parameters, T.Response> {
-        guard #available(iOS 16.0.0, watchOS 9.0.0, *) else { fatalError() }
-
+    public func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<T.Parameters, T.Response> where T.Parameters == Parameters, T.Response == Response{
         var modifiedEndpoint = apiEndpoint.any()
-        let encoder = modifiedEndpoint.parameterEncoder
-        if let modifiedEncoder = parameterEncoder(encoder) as? (any ParameterEncoder<T.Parameters>) {
-            modifiedEndpoint.parameterEncoder = modifiedEncoder
-        }
+        let encoder = parameterEncoder(modifiedEndpoint.parameterEncoder)
+        modifiedEndpoint.parameterEncoder = encoder
         return modifiedEndpoint
     }
 }
 
-public struct APIEndpointResponseModifier: APIEndpointModifier {
-    let responseDecoder: (any ResponseDecoder) -> any ResponseDecoder
+@available(iOS 16.0.0, watchOS 9.0.0, *)
+public struct APIEndpointResponseModifier<Parameters, Response>: APIEndpointModifier {
+    public typealias MapDecoder = (any ResponseDecoder<Response>) -> any ResponseDecoder<Response>
+    let responseDecoder: MapDecoder
 
-    public init(_ responseDecoder: @escaping (any ResponseDecoder) -> any ResponseDecoder) {
+    public init(_ responseDecoder: @escaping MapDecoder) {
         self.responseDecoder = responseDecoder
     }
 
-    public init<T>(_ decode: @escaping (any ResponseDecoder, URLResponse, Data) async throws -> T) {
+    public init(_ decode: @escaping (any ResponseDecoder<Response>, URLResponse, Data) async throws -> Response) {
         responseDecoder = { decoder in
             AnyResponseDecoder { response, data in
-               try await decode(decoder, response, data)
+                try await decode(decoder, response, data)
             }
         }
     }
 
-    public func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<T.Parameters, T.Response> {
-        guard #available(iOS 16.0.0, watchOS 9.0.0, *) else { fatalError() }
-
+    public func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<Parameters, Response> where T.Parameters == Parameters, T.Response == Response {
         var modifiedEndpoint = apiEndpoint.any()
         let decoder = modifiedEndpoint.responseDecoder
-        if let modifiedDecoder = responseDecoder(decoder) as? (any ResponseDecoder<T.Response>) {
-            modifiedEndpoint.responseDecoder = modifiedDecoder
-        }
+        modifiedEndpoint.responseDecoder = responseDecoder(decoder)
         return modifiedEndpoint
     }
 }
