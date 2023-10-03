@@ -7,7 +7,7 @@
 
 import Foundation
 
-@available(iOS 16.0.0, watchOS 9.0.0, *)
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, *)
 public protocol APIEndpointModifier<Parameters, Response> {
     associatedtype Parameters
     associatedtype Response
@@ -15,7 +15,7 @@ public protocol APIEndpointModifier<Parameters, Response> {
     func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<T.Parameters, T.Response> where T.Parameters == Parameters, T.Response == Response
 }
 
-@available(iOS 16.0.0, watchOS 9.0.0, *)
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, *)
 public extension APIEndpoint {
 
     func modify(_ modifier: any APIEndpointModifier<Parameters, Response>) -> AnyAPIEndpoint<Parameters, Response> {
@@ -43,17 +43,17 @@ public extension APIEndpoint {
     }
 }
 
-@available(iOS 16.0.0, watchOS 9.0.0, *)
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, *)
 func headerModifier<Parameters, Response>(_ headers: [String : String]) -> some APIEndpointModifier<Parameters, Response> {
     return APIEndpointParameterModifier<Parameters, Response> { $0.add(headers: headers) }
 }
 
-@available(iOS 16.0.0, watchOS 9.0.0, *)
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, *)
 func validateHTTPModifier<Parameters, Response>() -> some APIEndpointModifier<Parameters, Response> {
     return APIEndpointResponseModifier<Parameters, Response> { $0.validateHTTP() }
 }
 
-@available(iOS 16.0.0, watchOS 9.0.0, *)
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, *)
 public struct APIEndpointParameterModifier<Parameters, Response>: APIEndpointModifier {
     public typealias MapEncoder = (any ParameterEncoder<Parameters>) -> any ParameterEncoder<Parameters>
     let parameterEncoder: MapEncoder
@@ -78,7 +78,7 @@ public struct APIEndpointParameterModifier<Parameters, Response>: APIEndpointMod
     }
 }
 
-@available(iOS 16.0.0, watchOS 9.0.0, *)
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, *)
 public struct APIEndpointResponseModifier<Parameters, Response>: APIEndpointModifier {
     public typealias MapDecoder = (any ResponseDecoder<Response>) -> any ResponseDecoder<Response>
     let responseDecoder: MapDecoder

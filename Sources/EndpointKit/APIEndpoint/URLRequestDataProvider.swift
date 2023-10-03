@@ -20,15 +20,3 @@ public extension URLRequestDataProvider {
         return try await endpoint.responseDecoder.decode(response: response, data: data)
     }
 }
-
-extension URLSession: URLRequestDataProvider {
-    /// URLSession URLRequestDataProvider conformance
-    public func data(for urlRequest: URLRequest) async throws -> (Data, URLResponse) {
-        if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) {
-            return try await data(for: urlRequest, delegate: nil)
-        } else { // need to update minimum deployment target to watchOS 8.0 already
-            struct UnavailableError: Error { }
-            throw UnavailableError()
-        }
-    }
-}

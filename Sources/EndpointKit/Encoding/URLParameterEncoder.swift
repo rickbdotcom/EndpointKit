@@ -27,9 +27,6 @@ public struct URLParameterEncoder<T: Encodable>: ParameterEncoder {
 private extension URL {
 
     func addQueryItems(_ queryItems: [URLQueryItem]) -> URL? {
-        guard queryItems.isEmpty == false else {
-            return self
-        }
         var comps = URLComponents(url: self, resolvingAgainstBaseURL: true)
         let items = comps?.queryItems ?? []
         comps?.queryItems = items + queryItems
