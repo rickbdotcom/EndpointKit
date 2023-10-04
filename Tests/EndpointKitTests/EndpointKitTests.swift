@@ -145,9 +145,6 @@ final class EndpointTests: XCTestCase {
     }
 
     func testModifyErrorValidator() async throws {
-        guard #available(macOS 13.0, iOS 16.0, watchOS 9.0, *) else {
-            throw XCTSkip("Unsupported iOS version")
-        }
         struct StringError: LocalizedError {
             let errorDescription: String?
         }
@@ -181,9 +178,6 @@ final class EndpointTests: XCTestCase {
     }
 
     func testHeaders() async throws {
-        guard #available(macOS 13.0, iOS 16.0, watchOS 9.0, *) else {
-            throw XCTSkip("Unsupported iOS version")
-        }
         let track = API.Track(parameters: .init(
             action: "login"
         ))
@@ -206,7 +200,7 @@ final class EndpointTests: XCTestCase {
     }
 
     func testModifiers() async throws {
-        guard #available(macOS 13.0, iOS 16.0, watchOS 9.0, *) else {
+        guard #available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *) else {
             throw XCTSkip("Unsupported iOS version")
         }
         let getStuff = API.GetStuff()
@@ -226,7 +220,7 @@ final class EndpointTests: XCTestCase {
         }
     }
 
-    @available(macOS 13.0, iOS 16.0, *)
+    @available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
     func modifiers<T: APIEndpoint>(for endpoint: T) -> [any APIEndpointModifier<T.Parameters, T.Response>] {
         var modifiers = [any APIEndpointModifier<T.Parameters, T.Response>]()
         modifiers.append(headerModifier(["a": "b", "c": "d"]))
@@ -235,6 +229,36 @@ final class EndpointTests: XCTestCase {
             modifiers.append(APIEndpointResponseModifier {
                 $0.validate(error: API.CustomError.self)
             })
+        }
+        return modifiers
+    }
+
+    func testTypeErasedModifiers() async throws {
+        let getStuff = API.GetStuff()
+        let modifiedEndpoint = getStuff.modify(typeErasedModifiers(for: getStuff))
+
+        try await endpointRequestMatches(
+            modifiedEndpoint,
+            baseURL: API.baseURL,
+            matchingHeaders: ["a": "b", "c": "d"]
+        )
+        let errorDataProvider = TestDataProvider(body: #"{"errorCode": 1}"#)
+        do {
+            try await errorDataProvider.request(baseURL: API.baseURL, endpoint: modifiedEndpoint)
+            XCTFail("Should have failed")
+        } catch let error as API.CustomError {
+            XCTAssertEqual(error.errorCode, 1)
+        }
+    }
+
+    func typeErasedModifiers<T: APIEndpoint>(for endpoint: T) -> [AnyAPIEndpointModifier<T.Parameters, T.Response>] {
+        var modifiers = [AnyAPIEndpointModifier<T.Parameters, T.Response>]()
+        modifiers.append(headerModifier(["a": "b", "c": "d"]).any())
+
+        if endpoint is CustomErrorProtocol {
+            modifiers.append(APIEndpointResponseModifier {
+                $0.validate(error: API.CustomError.self)
+            }.any())
         }
         return modifiers
     }
@@ -266,20 +290,22 @@ final class EndpointTests: XCTestCase {
         XCTAssert(endpoint.responseDecoder is EmptyResponseDecoder)
     }
 
-    func testModifierCallbacks() async throws {
-        guard #available(macOS 13.0, iOS 16.0, watchOS 9.0, *) else {
-            throw XCTSkip("Unsupported iOS version")
-        }
+    func testModifierClosureInitializer() async throws {
         let dataProvider = TestDataProvider(body: "123")
         let form = API.Form(parameters: .init(
             username: "traveler123", password: "test123"
         ))
-        var modified = form.modify(APIEndpointResponseModifier { decoder, response, data in
-            try await decoder.decode(response: response, data: data)
-        })
-        modified = modified.modify(APIEndpointParameterModifier { encoder, parameters, request in
+
+        let parameterModifier = APIEndpointParameterModifier<API.Form.Parameters, API.Form.Response> { encoder, parameters, request in
             request
-        })
+        }
+        let responseModifier = APIEndpointResponseModifier<API.Form.Parameters, API.Form.Response> { decoder, response, data in
+            try await decoder.decode(response: response, data: data)
+        }
+
+        var modified = form.modify(parameterModifier)
+        modified = modified.modify(responseModifier)
+
         let result = try await dataProvider.request(baseURL: API.baseURL, endpoint: modified)
         XCTAssertEqual(result, "123")
     }
