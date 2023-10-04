@@ -44,12 +44,12 @@ public extension APIEndpoint {
 }
 
 @available(macOS 13.0, iOS 16.0, watchOS 9.0, *)
-func headerModifier<Parameters, Response>(_ headers: [String : String]) -> some APIEndpointModifier<Parameters, Response> {
+public func headerModifier<Parameters, Response>(_ headers: [String : String]) -> some APIEndpointModifier<Parameters, Response> {
     return APIEndpointParameterModifier<Parameters, Response> { $0.add(headers: headers) }
 }
 
 @available(macOS 13.0, iOS 16.0, watchOS 9.0, *)
-func validateHTTPModifier<Parameters, Response>() -> some APIEndpointModifier<Parameters, Response> {
+public func validateHTTPModifier<Parameters, Response>() -> some APIEndpointModifier<Parameters, Response> {
     return APIEndpointResponseModifier<Parameters, Response> { $0.validateHTTP() }
 }
 
