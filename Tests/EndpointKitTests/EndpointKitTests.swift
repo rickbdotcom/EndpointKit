@@ -8,7 +8,6 @@
 
 import Foundation
 import XCTest
-@testable import AmericanCoreNetworking
 
 final class EndpointTests: XCTestCase {
 
