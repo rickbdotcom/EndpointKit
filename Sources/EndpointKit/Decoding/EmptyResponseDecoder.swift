@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  EmptyResponseDecoder.swift
 //  
 //
 //  Created by Burgess, Rick

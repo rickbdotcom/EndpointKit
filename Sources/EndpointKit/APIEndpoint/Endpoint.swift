@@ -20,3 +20,23 @@ public struct Endpoint: Equatable {
         self.path = path
     }
 }
+
+public func POST(_ path: String) -> Endpoint {
+    .init(.post, path)
+}
+
+public func GET(_ path: String) -> Endpoint {
+    .init(.get, path)
+}
+
+public func PUT(_ path: String) -> Endpoint {
+    .init(.put, path)
+}
+
+public func DELETE(_ path: String) -> Endpoint {
+    .init(.delete, path)
+}
+
+public func HEAD(_ path: String) -> Endpoint {
+    .init(.head, path)
+}

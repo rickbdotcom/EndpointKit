@@ -7,7 +7,8 @@
 import Foundation
 
 /// Encodes parameters into URL query, i.e. ?item=1&next=2
-/// Doesn't currently handling array encoding, i.e. ?item[0]=first&item[1]=second
+/// - Warning: There is no standard way to encode arrays, would be a possible improvement to this encoder.
+/// https://medium.com/raml-api/objects-in-query-params-173d2712ce5b
 public struct URLParameterEncoder<T: Encodable>: ParameterEncoder {
     public typealias Parameters = T
     

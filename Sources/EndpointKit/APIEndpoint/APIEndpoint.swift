@@ -23,7 +23,7 @@ public protocol APIEndpoint<Parameters, Response> {
 
     /// parameters
     var parameters: Parameters { get }
-    /// endpoint field specifies the path, HTTP method, paramter encoding, response decoding, and any required HTTP headers
+    /// endpoint field specifies the path, HTTP method, parameter encoding, response decoding, and any required HTTP headers
     var endpoint: Endpoint { get }
 
     /// Specifies how to encode the parameter into a URLRequest

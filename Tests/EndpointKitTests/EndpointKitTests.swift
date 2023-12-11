@@ -8,7 +8,7 @@
 
 import Foundation
 import XCTest
-@testable import EndpointKit
+@testable import AmericanCoreNetworking
 
 final class EndpointTests: XCTestCase {
 
@@ -282,10 +282,10 @@ final class EndpointTests: XCTestCase {
     }
 
     func testAnyAPIEndpointInit() {
-        let endpoint = AnyAPIEndpoint(parameters: Data(), endpoint: .init(.get, "/hello"), parameterEncoder: DataParameterEncoder(), responseDecoder: EmptyResponseDecoder())
+        let endpoint = AnyAPIEndpoint(parameters: Data(), endpoint: GET("/hello"), parameterEncoder: DataParameterEncoder(), responseDecoder: EmptyResponseDecoder())
 
         XCTAssertEqual(endpoint.parameters, Data())
-        XCTAssertEqual(endpoint.endpoint, .init(.get, "/hello"))
+        XCTAssertEqual(endpoint.endpoint,  GET("/hello"))
         XCTAssert(endpoint.parameterEncoder is DataParameterEncoder)
         XCTAssert(endpoint.responseDecoder is EmptyResponseDecoder)
     }
@@ -336,7 +336,7 @@ func endpointRequestMatches<T: APIEndpoint>(_ endpoint: T, baseURL: URL, matchin
     if let url {
         XCTAssertEqual(request.url, URL(string: url)!)  // swiftlint:disable:this force_unwrap
     }
-    
+
     let parameters = try decoder.decode(T.Parameters.self, from: request.httpBody!)
     XCTAssertEqual(endpoint.parameters, parameters)
 
@@ -382,7 +382,7 @@ enum API {
             let refreshToken: String
         }
 
-        let endpoint = Endpoint(.post, "/login")
+        let endpoint = POST("/login")
         let parameters: Parameters
     }
 
@@ -392,7 +392,7 @@ enum API {
         }
         typealias Response = Void
 
-        let endpoint = Endpoint(.get, "/track")
+        let endpoint = GET("/track")
         let parameters: Parameters
 
         var responseDecoder: any ResponseDecoder<Void> {
@@ -413,7 +413,7 @@ enum API {
         }
         typealias Response = String
 
-        let endpoint = Endpoint(.post, "/form")
+        let endpoint = POST("/form")
         let parameters: Parameters
 
         var parameterEncoder: any ParameterEncoder<Parameters> {
@@ -441,21 +441,21 @@ enum API {
         typealias Parameters = Data
         typealias Response = Void
 
-        let endpoint = Endpoint(.post, "/upload")
+        let endpoint = POST("/upload")
         let parameters: Parameters
     }
 
     struct ImageDownload: APIEndpoint {
         typealias Response = Data
 
-        let endpoint = Endpoint(.get, "/download")
+        let endpoint = GET("/download")
     }
 
     struct GetStuff: APIEndpoint, CustomErrorProtocol {
         typealias Parameters = Void
         typealias Response = Void
 
-        let endpoint = Endpoint(.get, "/getstuff")
+        let endpoint = GET("/getstuff")
     }
 
     static let baseURL = URL(string: "https://www.rickb.com")!
