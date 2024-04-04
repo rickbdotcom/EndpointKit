@@ -20,15 +20,3 @@ public struct AnyParameterEncoder<T>: ParameterEncoder {
         try await encode(parameters, request)
     }
 }
-
-public extension ParameterEncoder {
-
-    func add(headers: [String: String]) -> any ParameterEncoder<Parameters> {
-        AnyParameterEncoder { parameters, request in
-            var request = try await encode(parameters, into: request)
-            let requestHeaders = request.allHTTPHeaderFields ?? [:]
-            request.allHTTPHeaderFields = headers.merging(requestHeaders) { a, _ in a }
-            return request
-        }
-    }
-}

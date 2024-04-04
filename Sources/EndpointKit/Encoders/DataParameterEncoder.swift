@@ -6,19 +6,18 @@
 
 import Foundation
 
-/// For use with Endpoint parameter is Data, raw data is put directly into HTTP body with no encoding (application/octet-stream by default unless contentType is specified)
+/// For use when Endpoint parameter is Data.
+/// Raw data is put directly into HTTP body with no encoding
 public struct DataParameterEncoder: ParameterEncoder {
     public typealias Parameters = Data
 
-    public let contentType: String
-
-    public init(contentType: String = "application/octet-stream") {
-        self.contentType = contentType
+    public init() {
     }
 
+    /// Encode implementation
     public func encode(_ parameters: Parameters, into request: URLRequest) throws -> URLRequest {
         var modifiedRequest = request
-        modifiedRequest.setValue(contentType, forHTTPHeaderField: "Content-Type")
+        modifiedRequest.setValue(ContentType.octetStream, forHTTPHeaderField: ContentType.header)
         modifiedRequest.httpBody = parameters
         return modifiedRequest
     }

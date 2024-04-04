@@ -6,15 +6,17 @@
 
 import Foundation
 
-/// When Endpoint parameters are specified as a JSON Encodable Dictionary (application/json)
+/// Endpoint parameters are specified as a JSON Encodable Dictionary (application/json)
 public struct SerializedJSONParameterEncoder<T>: ParameterEncoder {
     public typealias Parameters = T
-    
-    public init() { }
 
+    public init() {
+    }
+
+    /// Encode implementation
     public func encode(_ parameters: Parameters, into request: URLRequest) throws -> URLRequest {
         var modifiedRequest = request
-        modifiedRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        modifiedRequest.setValue(ContentType.json, forHTTPHeaderField: ContentType.header)
         modifiedRequest.httpBody = try JSONSerialization.data(withJSONObject: parameters)
         return modifiedRequest
     }
