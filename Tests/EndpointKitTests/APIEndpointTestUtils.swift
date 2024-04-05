@@ -9,7 +9,7 @@ import Foundation
 import XCTest
 @testable import EndpointKit
 
-func endpointRequestMatches<T: APIEndpoint>(
+func endpointRequestMatches<T: Endpoint>(
     _ endpoint: T,
     baseURL: URL,
     matchingURL url: String? = nil,
@@ -34,7 +34,7 @@ func endpointRequestMatches<T: APIEndpoint>(
 // fixme rickb    XCTAssertEqual(request.httpMethod, endpoint.method.rawValue)
 }
 
-func endpointRequestMatches<T: APIEndpoint>(
+func endpointRequestMatches<T: Endpoint>(
     _ endpoint: T,
     baseURL: URL,
     matchingURL url: String? = nil,

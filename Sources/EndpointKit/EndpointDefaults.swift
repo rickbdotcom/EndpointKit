@@ -7,43 +7,43 @@
 
 import Foundation
 
-public extension APIEndpoint where Parameters == Void {
+public extension Endpoint where Parameters == Void {
     var parameterEncoder: any ParameterEncoder<Parameters> {
         EmptyParameterEncoder()
     }
 }
 
-public extension APIEndpoint where Parameters: Encodable {
+public extension Endpoint where Parameters: Encodable {
     var parameterEncoder: any ParameterEncoder<Parameters> {
-        endpoint.method == .get ? URLParameterEncoder() : JSONEncodableParameterEncoder()
+        route.method == .get ? URLParameterEncoder() : JSONEncodableParameterEncoder()
     }
 }
 
-public extension APIEndpoint where Parameters == Data {
+public extension Endpoint where Parameters == Data {
     var parameterEncoder: any ParameterEncoder<Parameters> {
         DataParameterEncoder()
     }
 }
 
-public extension APIEndpoint where Response == Void {
+public extension Endpoint where Response == Void {
     var responseDecoder: any ResponseDecoder<Response> {
         EmptyResponseDecoder().validateHTTP()
     }
 }
 
-public extension APIEndpoint where Response: Decodable {
+public extension Endpoint where Response: Decodable {
     var responseDecoder: any ResponseDecoder<Response> {
         JSONDecodableResponseDecoder().validateHTTP()
     }
 }
 
-public extension APIEndpoint where Response == Data {
+public extension Endpoint where Response == Data {
     var responseDecoder: any ResponseDecoder<Response> {
         DataResponseDecoder().validateHTTP()
     }
 }
 
-public extension APIEndpoint where Response == String {
+public extension Endpoint where Response == String {
     var responseDecoder: any ResponseDecoder<Response> {
         StringResponseDecoder().validateHTTP()
     }

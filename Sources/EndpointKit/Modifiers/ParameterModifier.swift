@@ -9,7 +9,7 @@
 import Foundation
 
 /// An endpoint modifier that modifies an endpoint's parameters
-public struct APIEndpointParameterModifier<Parameters, Response>: APIEndpointModifier {
+public struct ParameterModifier<Parameters, Response>: EndpointModifier {
     public typealias MapEncoder = (any ParameterEncoder<Parameters>) -> any ParameterEncoder<Parameters>
     let parameterEncoder: MapEncoder
 
@@ -28,9 +28,9 @@ public struct APIEndpointParameterModifier<Parameters, Response>: APIEndpointMod
     }
 
     /// Implementation of parameter modifier
-    public func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<T.Parameters, T.Response>
+    public func modify<T: Endpoint>(_ endpoint: T) -> AnyEndpoint<T.Parameters, T.Response>
     where T.Parameters == Parameters, T.Response == Response {
-        var modifiedEndpoint = apiEndpoint.any()
+        var modifiedEndpoint = endpoint.any()
         let encoder = parameterEncoder(modifiedEndpoint.parameterEncoder)
         modifiedEndpoint.parameterEncoder = encoder
         return modifiedEndpoint

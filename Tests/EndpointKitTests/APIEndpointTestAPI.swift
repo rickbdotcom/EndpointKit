@@ -13,7 +13,7 @@ protocol CustomErrorProtocol {
 }
 
 enum API {
-    struct Login: APIEndpoint {
+    struct Login: Endpoint {
         struct Parameters: Codable, Equatable {
             let username: String
             let password: String
@@ -23,18 +23,18 @@ enum API {
             let accessToken: String
             let refreshToken: String
         }
-        let endpoint = POST("login")
+        let route = POST("login")
 
         let parameters: Parameters
     }
 
-    struct Track: APIEndpoint {
+    struct Track: Endpoint {
         struct Parameters: Encodable {
             let action: String
         }
         typealias Response = Void
 
-        let endpoint = GET("track")
+        let route = GET("track")
 
         let parameters: Parameters
 
@@ -49,14 +49,14 @@ enum API {
         let errorCode: Int
     }
 
-    struct Form: APIEndpoint {
+    struct Form: Endpoint {
         struct Parameters: Encodable {
             let username: String
             let password: String
         }
         typealias Response = String
 
-        let endpoint = POST("form")
+        let route = POST("form")
 
         let parameters: Parameters
 
@@ -65,13 +65,13 @@ enum API {
         }
     }
 
-    struct Poll: APIEndpoint {
+    struct Poll: Endpoint {
         typealias Parameters = [String: Any]
         typealias Response = [String: Int]
 
         let pollId: String
 
-        var endpoint: Endpoint { POST("poll/\(pollId)") }
+        var route: Route { POST("poll/\(pollId)") }
 
         let parameters: Parameters
 
@@ -84,26 +84,26 @@ enum API {
         }
     }
 
-    struct ImageUpload: APIEndpoint {
+    struct ImageUpload: Endpoint {
         typealias Parameters = Data
         typealias Response = Void
 
-        let endpoint = POST("upload")
+        let route = POST("upload")
 
         let parameters: Parameters
     }
 
-    struct ImageDownload: APIEndpoint {
+    struct ImageDownload: Endpoint {
         typealias Response = Data
 
-        let endpoint = GET("download")
+        let route = GET("download")
     }
 
-    struct GetStuff: APIEndpoint, CustomErrorProtocol {
+    struct GetStuff: Endpoint, CustomErrorProtocol {
         typealias Parameters = Void
         typealias Response = Void
         
-        let endpoint = GET("getstuff")
+        let route = GET("getstuff")
     }
 
     static let baseURL = URL(string: "https://www.rickb.com")!

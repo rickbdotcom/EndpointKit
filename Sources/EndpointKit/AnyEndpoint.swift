@@ -7,38 +7,38 @@
 
 import Foundation
 
-/// type erased APIEndpoint
-public struct AnyAPIEndpoint<Parameters, Response>: APIEndpoint {
+/// type erased Endpoint
+public struct AnyEndpoint<Parameters, Response>: Endpoint {
     public var parameters: Parameters
-    public var endpoint: Endpoint
+    public var route: Route
 
     public var parameterEncoder: any ParameterEncoder<Parameters>
     public var responseDecoder: any ResponseDecoder<Response>
 
     public init(
         parameters: Parameters,
-        endpoint: Endpoint,
+        route: Route,
         parameterEncoder: any ParameterEncoder<Parameters>,
         responseDecoder: any ResponseDecoder<Response>
     ) {
         self.parameters = parameters
-        self.endpoint = endpoint
+        self.route = route
         self.parameterEncoder = parameterEncoder
         self.responseDecoder = responseDecoder
     }
 
-    public init<Endpoint: APIEndpoint>(_ endpoint: Endpoint)
-        where Endpoint.Parameters == Parameters, Endpoint.Response == Response {
+    public init<T: Endpoint>(_ endpoint: T)
+        where T.Parameters == Parameters, T.Response == Response {
         self.parameters = endpoint.parameters
-        self.endpoint = endpoint.endpoint
+        self.route = endpoint.route
         self.parameterEncoder = endpoint.parameterEncoder
         self.responseDecoder = endpoint.responseDecoder
     }
 }
 
-public extension APIEndpoint {
+public extension Endpoint {
 
-    func any() -> AnyAPIEndpoint<Parameters, Response> {
-        AnyAPIEndpoint(self)
+    func any() -> AnyEndpoint<Parameters, Response> {
+        AnyEndpoint(self)
     }
 }

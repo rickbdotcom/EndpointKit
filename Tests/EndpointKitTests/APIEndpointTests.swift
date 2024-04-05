@@ -11,15 +11,16 @@ import XCTest
 
 final class ServiceEndpointTests: XCTestCase {
 
-    func testAnyAPIEndpointInit() {
-        let endpoint = AnyAPIEndpoint(
+    func testAnyEndpointInit() {
+        let endpoint = AnyEndpoint(
             parameters: Data(),
-            endpoint: GET("hello"),
+            route: GET("hello"),
             parameterEncoder: DataParameterEncoder(),
             responseDecoder: EmptyResponseDecoder()
         )
 
         XCTAssertEqual(endpoint.parameters, Data())
+        
 // fixme rickb        XCTAssertEqual(endpoint.method, .get)
 // fixme rickb        XCTAssertEqual(endpoint.path, "hello")
         XCTAssert(endpoint.parameterEncoder is DataParameterEncoder)

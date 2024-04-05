@@ -112,12 +112,12 @@ final class ServiceEndpointModifierTests: XCTestCase {
         }
     }
 
-    func modifiers<T: APIEndpoint>(for endpoint: T) -> [AnyAPIEndpointModifier<T.Parameters, T.Response>] {
-        var modifiers = [AnyAPIEndpointModifier<T.Parameters, T.Response>]()
+    func modifiers<T: Endpoint>(for endpoint: T) -> [AnyEndpointModifier<T.Parameters, T.Response>] {
+        var modifiers = [AnyEndpointModifier<T.Parameters, T.Response>]()
         modifiers.append(.merge(headers: ["a": "b", "c": "d"]).any())
 
         if endpoint is CustomErrorProtocol {
-            modifiers.append(APIEndpointResponseModifier {
+            modifiers.append(ResponseModifier {
                 $0.validate(error: API.CustomError.self)
             }.any())
         }
@@ -130,10 +130,10 @@ final class ServiceEndpointModifierTests: XCTestCase {
             username: "traveler123", password: "test123"
         ))
 
-        let parameterModifier = APIEndpointParameterModifier<API.Form.Parameters, API.Form.Response> { encoder, parameters, request in
+        let parameterModifier = ParameterModifier<API.Form.Parameters, API.Form.Response> { encoder, parameters, request in
             request
         }
-        let responseModifier = APIEndpointResponseModifier<API.Form.Parameters, API.Form.Response> { decoder, response, data in
+        let responseModifier = ResponseModifier<API.Form.Parameters, API.Form.Response> { decoder, response, data in
             try await decoder.decode(response: response, data: data)
         }
 

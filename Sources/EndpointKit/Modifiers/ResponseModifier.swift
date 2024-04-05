@@ -8,7 +8,7 @@
 import Foundation
 
 /// An endpoint modifier that modifies an endpoint's response
-public struct APIEndpointResponseModifier<Parameters, Response>: APIEndpointModifier {
+public struct ResponseModifier<Parameters, Response>: EndpointModifier {
     public typealias MapDecoder = (any ResponseDecoder<Response>) -> any ResponseDecoder<Response>
     let responseDecoder: MapDecoder
 
@@ -27,9 +27,9 @@ public struct APIEndpointResponseModifier<Parameters, Response>: APIEndpointModi
     }
 
     /// Implementation of parameter modifier
-    public func modify<T: APIEndpoint>(_ apiEndpoint: T) -> AnyAPIEndpoint<Parameters, Response> 
+    public func modify<T: Endpoint>(_ endpoint: T) -> AnyEndpoint<Parameters, Response> 
     where T.Parameters == Parameters, T.Response == Response {
-        var modifiedEndpoint = apiEndpoint.any()
+        var modifiedEndpoint = endpoint.any()
         let decoder = modifiedEndpoint.responseDecoder
         modifiedEndpoint.responseDecoder = responseDecoder(decoder)
         return modifiedEndpoint

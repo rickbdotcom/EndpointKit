@@ -14,7 +14,7 @@ public protocol URLRequestDataProvider {
 public extension URLRequestDataProvider {
 
     /// A complete async HTTP request on the specified endpoint
-    func request<T: APIEndpoint>(baseURL: URL, endpoint: T) async throws -> T.Response {
+    func request<T: Endpoint>(baseURL: URL, endpoint: T) async throws -> T.Response {
         let request = try await URLRequest(baseURL: baseURL, endpoint: endpoint)
         let (data, response) = try await data(for: request)
         return try await endpoint.responseDecoder.decode(response: response, data: data)
