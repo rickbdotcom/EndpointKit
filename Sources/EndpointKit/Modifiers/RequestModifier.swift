@@ -9,8 +9,8 @@
 import Foundation
 
 /// An endpoint modifier that modifies an endpoint's parameters
-public struct ParameterModifier<Parameters, Response>: EndpointModifier {
-    public typealias MapEncoder = (any ParameterEncoder<Parameters>) -> any ParameterEncoder<Parameters>
+public struct RequestModifier<Parameters, Response>: EndpointModifier {
+    public typealias MapEncoder = (any RequestEncoder<Parameters>) -> any RequestEncoder<Parameters>
     let parameterEncoder: MapEncoder
 
     /// Create parameter modifier from an existing parameter encoder
@@ -19,9 +19,9 @@ public struct ParameterModifier<Parameters, Response>: EndpointModifier {
     }
 
     /// Create parameter modifier from function
-    public init(_ encode: @escaping (any ParameterEncoder<Parameters>, Parameters, URLRequest) async throws -> URLRequest) {
+    public init(_ encode: @escaping (any RequestEncoder<Parameters>, Parameters, URLRequest) async throws -> URLRequest) {
         parameterEncoder = { encoder in
-            AnyParameterEncoder { parameters, request in
+            AnyRequestEncoder { parameters, request in
                 try await encode(encoder, parameters, request)
             }
         }
@@ -31,8 +31,8 @@ public struct ParameterModifier<Parameters, Response>: EndpointModifier {
     public func modify<T: Endpoint>(_ endpoint: T) -> AnyEndpoint<T.Parameters, T.Response>
     where T.Parameters == Parameters, T.Response == Response {
         var modifiedEndpoint = endpoint.any()
-        let encoder = parameterEncoder(modifiedEndpoint.parameterEncoder)
-        modifiedEndpoint.parameterEncoder = encoder
+        let encoder = parameterEncoder(modifiedEndpoint.requestEncoder)
+        modifiedEndpoint.requestEncoder = encoder
         return modifiedEndpoint
     }
 }

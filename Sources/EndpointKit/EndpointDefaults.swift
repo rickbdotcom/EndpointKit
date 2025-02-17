@@ -8,19 +8,19 @@
 import Foundation
 
 public extension Endpoint where Parameters == Void {
-    var parameterEncoder: any ParameterEncoder<Parameters> {
+    var requestEncoder: any RequestEncoder<Parameters> {
         EmptyParameterEncoder()
     }
 }
 
 public extension Endpoint where Parameters: Encodable {
-    var parameterEncoder: any ParameterEncoder<Parameters> {
+    var requestEncoder: any RequestEncoder<Parameters> {
         route.method == .get ? URLParameterEncoder() : JSONEncodableParameterEncoder()
     }
 }
 
 public extension Endpoint where Parameters == Data {
-    var parameterEncoder: any ParameterEncoder<Parameters> {
+    var requestEncoder: any RequestEncoder<Parameters> {
         DataParameterEncoder()
     }
 }

@@ -60,7 +60,7 @@ enum API {
 
         let parameters: Parameters
 
-        var parameterEncoder: any ParameterEncoder<Parameters> {
+        var requestEncoder: any RequestEncoder<Parameters> {
             FormParameterEncoder()
         }
     }
@@ -75,7 +75,7 @@ enum API {
 
         let parameters: Parameters
 
-        var parameterEncoder: any ParameterEncoder<Parameters> {
+        var requestEncoder: any RequestEncoder<Parameters> {
             SerializedJSONParameterEncoder()
                 .contentType("application/vnd.aa.mobile.app+json;version=50.0")
         }

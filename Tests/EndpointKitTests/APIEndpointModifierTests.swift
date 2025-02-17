@@ -130,7 +130,7 @@ final class ServiceEndpointModifierTests: XCTestCase {
             username: "traveler123", password: "test123"
         ))
 
-        let parameterModifier = ParameterModifier<API.Form.Parameters, API.Form.Response> { encoder, parameters, request in
+        let parameterModifier = RequestModifier<API.Form.Parameters, API.Form.Response> { encoder, parameters, request in
             request
         }
         let responseModifier = ResponseModifier<API.Form.Parameters, API.Form.Response> { decoder, response, data in

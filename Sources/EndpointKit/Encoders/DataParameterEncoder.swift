@@ -8,7 +8,7 @@ import Foundation
 
 /// For use when Endpoint parameter is Data.
 /// Raw data is put directly into HTTP body with no encoding
-public struct DataParameterEncoder: ParameterEncoder {
+public struct DataParameterEncoder: RequestEncoder {
     public typealias Parameters = Data
 
     public init() {

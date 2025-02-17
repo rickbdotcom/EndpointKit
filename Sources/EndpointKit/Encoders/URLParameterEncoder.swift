@@ -9,7 +9,7 @@ import Foundation
 /// Encodes parameters into URL query, i.e. ?item=1&next=2
 /// - Warning: Doesn't support arrays as there is no standard way to encode them. TODO: US1893651
 /// https://medium.com/raml-api/objects-in-query-params-173d2712ce5b
-public struct URLParameterEncoder<T: Encodable>: ParameterEncoder {
+public struct URLParameterEncoder<T: Encodable>: RequestEncoder {
     public typealias Parameters = T
 
     let encoder: JSONEncoder

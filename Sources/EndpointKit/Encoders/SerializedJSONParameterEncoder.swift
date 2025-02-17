@@ -7,7 +7,7 @@
 import Foundation
 
 /// Endpoint parameters are specified as a JSON Encodable Dictionary (application/json)
-public struct SerializedJSONParameterEncoder<T>: ParameterEncoder {
+public struct SerializedJSONParameterEncoder<T>: RequestEncoder {
     public typealias Parameters = T
 
     public init() {

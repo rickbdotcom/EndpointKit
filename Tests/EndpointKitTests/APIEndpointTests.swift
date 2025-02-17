@@ -23,7 +23,7 @@ final class ServiceEndpointTests: XCTestCase {
         
 // fixme rickb        XCTAssertEqual(endpoint.method, .get)
 // fixme rickb        XCTAssertEqual(endpoint.path, "hello")
-        XCTAssert(endpoint.parameterEncoder is DataParameterEncoder)
+        XCTAssert(endpoint.requestEncoder is DataParameterEncoder)
         XCTAssert(endpoint.responseDecoder is EmptyResponseDecoder)
     }
 

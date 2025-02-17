@@ -7,7 +7,7 @@
 import Foundation
 
 /// A ParameterEncoder modifies a URLRequest by encoding the passed in parameters
-public protocol ParameterEncoder<Parameters> {
+public protocol RequestEncoder<Parameters> {
     associatedtype Parameters
 
     func encode(_ parameters: Parameters, into request: URLRequest) async throws -> URLRequest

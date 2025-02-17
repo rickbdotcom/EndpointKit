@@ -40,9 +40,9 @@ extension Endpoint {
     }
 
     /// Specifically modify the endpoint's parameterEncoder
-    public func modify(parameterEncoder: @escaping (any ParameterEncoder<Parameters>) -> any ParameterEncoder<Parameters>) -> AnyEndpoint<Parameters, Response> {
+    public func modify(parameterEncoder: @escaping (any RequestEncoder<Parameters>) -> any RequestEncoder<Parameters>) -> AnyEndpoint<Parameters, Response> {
         var endpoint = any()
-        endpoint.parameterEncoder = parameterEncoder(endpoint.parameterEncoder)
+        endpoint.requestEncoder = parameterEncoder(endpoint.requestEncoder)
         return endpoint
     }
 

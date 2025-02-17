@@ -18,8 +18,8 @@ public protocol Endpoint<Parameters, Response> {
     /// route field specifies the path, HTTP method, parameter encoding, response decoding, and any required HTTP headers
     var route: Route { get }
 
-    /// Specifies how to encode the parameter into a URLRequest
-    var parameterEncoder: any ParameterEncoder<Parameters> { get }
+    /// Specifies how to encode the URLRequest
+    var requestEncoder: any RequestEncoder<Parameters> { get }
 
     // Specifies how to decode the response
     var responseDecoder: any ResponseDecoder<Response> { get }

@@ -1,5 +1,5 @@
 //
-//  AnyParameterEncoder.swift
+//  AnyRequestEncoder.swift
 //  
 //
 //  Created by Burgess, Rick  on 9/6/23.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct AnyParameterEncoder<T>: ParameterEncoder {
+public struct AnyRequestEncoder<T>: RequestEncoder {
     public typealias Parameters = T
 
     let encode: (Parameters, URLRequest) async throws -> URLRequest
