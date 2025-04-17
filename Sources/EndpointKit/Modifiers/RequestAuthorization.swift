@@ -11,34 +11,41 @@ public protocol Authorization {
     func authorize(request: URLRequest) -> URLRequest
 }
 
+let defaultAuthorizationKey = "Authorization"
+
 public struct BearerAuthorization: Authorization {
     let authToken: String
+    let key: String
 
-    public init(authToken: String) {
+    public init(authToken: String, key: String? = nil) {
         self.authToken = authToken
+        self.key = key ?? defaultAuthorizationKey
     }
 
-    public init(userName: String, password: String) {
+    public init(userName: String, password: String, key: String? = nil) {
         self.authToken = Data(base64Encoded: [userName, password].joined(separator: ":"))?.base64EncodedString() ?? ""
+        self.key = key ?? defaultAuthorizationKey
     }
 
     public func authorize(request: URLRequest) -> URLRequest {
         var modifiedRequest = request
-        modifiedRequest.setValue("Basic \(authToken)", forHTTPHeaderField: "Authorization")
+        modifiedRequest.setValue("Basic \(authToken)", forHTTPHeaderField: key)
         return modifiedRequest
     }
 }
 
 public struct BasicAuthorization: Authorization {
     let authToken: String
+    let key: String
 
-    public init(authToken: String) {
+    public init(authToken: String, key: String? = nil) {
         self.authToken = authToken
+        self.key = key ?? defaultAuthorizationKey
     }
 
     public func authorize(request: URLRequest) -> URLRequest {
         var modifiedRequest = request
-        modifiedRequest.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        modifiedRequest.setValue("Bearer \(authToken)", forHTTPHeaderField: key)
         return modifiedRequest
     }
 }

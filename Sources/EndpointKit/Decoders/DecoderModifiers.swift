@@ -38,12 +38,4 @@ extension ResponseDecoder {
             return try await decode(response: response, data: data)
         }
     }
-
-    /// Modify response decoder to validate HTTP error code of response
-    public func validateHTTP() -> any ResponseDecoder<Response> {
-        AnyResponseDecoder { response, data in
-            try HTTPError.throwIfError(response: response, data: data)
-            return try await decode(response: response, data: data)
-        }
-    }
 }
