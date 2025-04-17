@@ -7,7 +7,7 @@
 import Foundation
 
 /// URLSession implements this, can be used for mocking
-public protocol URLRequestDataProvider {
+public protocol URLRequestDataProvider: Sendable {
     func data(for: URLRequest) async throws -> (Data, URLResponse)
 }
 
