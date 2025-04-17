@@ -38,6 +38,10 @@ public struct HTTPError: Error {
     public static func isError(_ statusCode: Int) -> Bool {
         (200..<300).contains(statusCode) == false
     }
+
+    public var responseString: String? {
+        .init(data: data, encoding: .utf8)
+    }
 }
 
 extension URLResponse {
