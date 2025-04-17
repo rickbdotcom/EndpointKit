@@ -8,7 +8,7 @@
 import Foundation
 
 /// type erased Endpoint
-public struct AnyEndpoint<Parameters, Response>: Endpoint {
+public struct AnyEndpoint<Parameters: Sendable, Response: Sendable>: Endpoint {
     public var parameters: Parameters
     public var route: Route
 

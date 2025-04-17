@@ -7,11 +7,11 @@
 
 import Foundation
 
-public protocol Endpoint<Parameters, Response> {
+public protocol Endpoint<Parameters, Response>: Sendable {
     /// The parameters passed to the endpoint
-    associatedtype Parameters
+    associatedtype Parameters: Sendable
     /// The response expected from the endpoint
-    associatedtype Response
+    associatedtype Response: Sendable
 
     /// parameters
     var parameters: Parameters { get }

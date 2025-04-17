@@ -10,9 +10,9 @@ import Foundation
 public struct AnyRequestEncoder<T>: RequestEncoder {
     public typealias Parameters = T
 
-    let encode: (Parameters, URLRequest) async throws -> URLRequest
+    let encode: @Sendable (Parameters, URLRequest) async throws -> URLRequest
 
-    public init(encode: @escaping (T, URLRequest) async throws -> URLRequest) {
+    public init(encode: @Sendable @escaping (T, URLRequest) async throws -> URLRequest) {
         self.encode = encode
     }
 

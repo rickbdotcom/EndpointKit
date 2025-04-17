@@ -6,7 +6,7 @@
 import Foundation
 
 /// Enum representing defined HTTP method types
-public struct HTTPMethod: Hashable, Equatable, RawRepresentable {
+public struct HTTPMethod: Hashable, Equatable, RawRepresentable, Sendable {
     public let rawValue: String
 
     public init(rawValue: String) {

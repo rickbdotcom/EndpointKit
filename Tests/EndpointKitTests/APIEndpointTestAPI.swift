@@ -66,7 +66,7 @@ enum API {
     }
 
     struct Poll: Endpoint {
-        typealias Parameters = [String: Any]
+        typealias Parameters = [String: any Sendable]
         typealias Response = [String: Int]
 
         let pollId: String

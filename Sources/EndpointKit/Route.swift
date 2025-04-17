@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct Route: Equatable {
+public struct Route: Equatable, Sendable {
     /// The HTTP Method
     public let method: HTTPMethod
     /// The relative path to the endpoint

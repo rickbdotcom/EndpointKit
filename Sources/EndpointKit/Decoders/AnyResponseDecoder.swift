@@ -9,9 +9,9 @@ import Foundation
 public struct AnyResponseDecoder<T>: ResponseDecoder {
     public typealias Response = T
 
-    let decode: (URLResponse, Data) async throws -> T
+    let decode: @Sendable (URLResponse, Data) async throws -> T
 
-    public init(decode: @escaping (URLResponse, Data) async throws -> T) {
+    public init(decode: @Sendable @escaping (URLResponse, Data) async throws -> T) {
         self.decode = decode
     }
 
