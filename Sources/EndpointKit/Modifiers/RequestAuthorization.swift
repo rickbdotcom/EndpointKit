@@ -29,7 +29,7 @@ public struct BearerAuthorization: Authorization {
 
     public func authorize(request: URLRequest) -> URLRequest {
         var modifiedRequest = request
-        modifiedRequest.setValue("Basic \(authToken)", forHTTPHeaderField: key)
+        modifiedRequest.setValue("Bearer \(authToken)", forHTTPHeaderField: key)
         return modifiedRequest
     }
 }
@@ -45,7 +45,7 @@ public struct BasicAuthorization: Authorization {
 
     public func authorize(request: URLRequest) -> URLRequest {
         var modifiedRequest = request
-        modifiedRequest.setValue("Bearer \(authToken)", forHTTPHeaderField: key)
+        modifiedRequest.setValue("Basic \(authToken)", forHTTPHeaderField: key)
         return modifiedRequest
     }
 }
