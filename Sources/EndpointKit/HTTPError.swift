@@ -8,7 +8,7 @@
 import Foundation
 
 /// A basic HTTP error
-public struct HTTPError: Error {
+public struct HTTPError: LocalizedError {
     /// The data in the response that produced this error
     public let data: Data
 
@@ -19,7 +19,7 @@ public struct HTTPError: Error {
     public var statusCode: Int { response.statusCode }
 
     /// Implementation of Error localized description
-    public var localizedDescription: String {
+    public var errorDescription: String? {
         "HTTP Error: \(statusCode)"
     }
 
