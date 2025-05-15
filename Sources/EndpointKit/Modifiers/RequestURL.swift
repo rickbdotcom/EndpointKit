@@ -12,8 +12,8 @@ extension AnyEndpointModifier {
         RequestModifier { $0.map(url: url) }.any()
     }
 
-    public static func map(resolvingAgainstBaseURL: Bool = true, url: @escaping (URLComponents) -> URLComponents) -> Self {
-        RequestModifier { $0.map(resolvingAgainstBaseURL: resolvingAgainstBaseURL, url: url) }.any()
+    public static func map(resolvingAgainstBaseURL: Bool = true, urlComponents: @escaping (URLComponents) -> URLComponents) -> Self {
+        RequestModifier { $0.map(resolvingAgainstBaseURL: resolvingAgainstBaseURL, urlComponents: urlComponents) }.any()
     }
 
     public static func mapURLComponents(host: String? = nil, path: String? = nil, resolvingAgainstBaseURL: Bool = true) -> Self {
@@ -42,17 +42,15 @@ extension RequestEncoder {
         }
     }
 
-    public func map(resolvingAgainstBaseURL: Bool = true, url: @escaping (URLComponents) -> URLComponents) -> any RequestEncoder<Parameters> {
-        AnyRequestEncoder { parameters, inRequest in
-            var request = inRequest
-            if let requestURL = request.url,
-                var comp = URLComponents(url: requestURL, resolvingAgainstBaseURL: resolvingAgainstBaseURL)  {
-                comp = url(comp)
+    public func map(resolvingAgainstBaseURL: Bool = true, urlComponents: @escaping (URLComponents) -> URLComponents) -> any RequestEncoder<Parameters> {
+        map { url in
+            if var comp = URLComponents(url: url, resolvingAgainstBaseURL: resolvingAgainstBaseURL)  {
+                comp = urlComponents(comp)
                 if let newURL = comp.url {
-                    request.url = newURL
+                    return newURL
                 }
             }
-            return try await encode(parameters, into: request)
+            return url
         }
     }
 }
