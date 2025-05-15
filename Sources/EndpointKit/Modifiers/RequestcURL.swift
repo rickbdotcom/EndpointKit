@@ -2,7 +2,7 @@
 //  File.swift
 //  EndpointKit
 //
-//  Created by Burgess, Rick (CHICO-C) on 4/17/25.
+//  Created by Burgess, Rick on 4/17/25.
 //
 
 import Foundation
