@@ -10,7 +10,9 @@ import Foundation
 extension AnyEndpointModifier {
     /// Create a modifier that modifies the endpoint's Content-Type
     public static func contentType(_ contentType: String) -> Self {
-        RequestModifier { $0.contentType(contentType) }.any()
+        RequestModifier {
+            $0.contentType(contentType)
+        }.any()
     }
 }
 

@@ -11,14 +11,18 @@ extension AnyEndpointModifier {
     /// Create a modifier that merges the endpoint's headers
     public static func merge(
         headers: [String : String],
-        uniquingKeysWith combine: @escaping (String, String) -> String = { a, _ in a }
+        uniquingKeysWith combine: @escaping (String, String) -> String = { _, b in b }
     ) -> Self {
-        RequestModifier { $0.merge(headers: headers, uniquingKeysWith: combine) }.any()
+        RequestModifier {
+            $0.merge(headers: headers, uniquingKeysWith: combine)
+        }.any()
     }
 
     /// Create a modifier that removes the endpoint's headers
     public static func remove(headers: [String]) -> Self {
-        RequestModifier { $0.remove(headers: headers) }.any()
+        RequestModifier {
+            $0.remove(headers: headers)
+        }.any()
     }
 }
 
@@ -26,7 +30,7 @@ extension RequestEncoder {
     /// Modify parameter encoder to merge the headers
     public func merge(
         headers: [String: String],
-        uniquingKeysWith combine: @escaping (String, String) -> String = { a, _ in a }
+        uniquingKeysWith combine: @escaping (String, String) -> String = { _, b in b }
     ) -> any RequestEncoder<Parameters> {
         AnyRequestEncoder { parameters, request in
             try await encode(parameters, into: request).merge(
@@ -47,21 +51,23 @@ extension RequestEncoder {
 extension URLRequest {
     public func merge(
         headers: [String: String],
-        uniquingKeysWith combine: @escaping (String, String) -> String = { a, _ in a }
+        uniquingKeysWith combine: @escaping (String, String) -> String = { _, b in b }
     ) -> URLRequest {
         var request = self
-        let requestHeaders = request.allHTTPHeaderFields ?? [:]
-        request.allHTTPHeaderFields = headers.merging(requestHeaders, uniquingKeysWith: combine)
+        headers.forEach {
+            if let header = request.value(forHTTPHeaderField: $0.key) {
+                request.setValue(combine(header, $0.value), forHTTPHeaderField: $0.key)
+            } else {
+                request.setValue($0.value, forHTTPHeaderField: $0.key)
+            }
+        }
         return request
     }
 
-
     public func remove(headers: [String]) -> URLRequest {
         var request = self
-        if let requestHeaders = request.allHTTPHeaderFields {
-            request.allHTTPHeaderFields = requestHeaders.filter { key, _ in
-                headers.contains(key) == false
-            }
+        headers.forEach {
+            request.setValue(nil, forHTTPHeaderField: $0)
         }
         return request
     }

@@ -9,54 +9,56 @@ import Foundation
 import Testing
 @testable import EndpointKit
 
-func endpointRequestMatches<T: Endpoint>(
-    _ endpoint: T,
-    baseURL: URL,
-    matchingURL url: String? = nil,
-    matchingBody httpBody: String? = nil,
-    matchingHeaders headers: [String: String]? = nil
-) async throws {
-    let request = try await URLRequest(baseURL: baseURL, endpoint: endpoint)
-    if let url {
-        let requestURL = try #require(URL(string: url))
-        #expect(request.url == requestURL)
-    }
+let testBaseURL = URL(string: "https://www.rickb.com")!
 
-    if let httpBody {
-        let requestBody = try #require(request.httpBody.flatMap { String(data: $0, encoding: .utf8) })
-        #expect(httpBody == requestBody)
-    }
+extension Endpoint {
+    func requestMatches(
+        url: String? = nil,
+        body: String? = nil,
+        headers: [String: String]? = nil,
+    ) async throws {
+        let request = try await URLRequest(baseURL: testBaseURL, endpoint: self)
+        if let url {
+            let requestURL = try #require(URL(string: url))
+            #expect(request.url == requestURL)
+        }
 
-    if let headers {
-        let keys = headers.keys
-        #expect(headers == request.allHTTPHeaderFields?.filter { keys.contains($0.key) })
+        if let body {
+            let requestBody = try #require(request.httpBody.flatMap { String(data: $0, encoding: .utf8) })
+            #expect(body == requestBody)
+        }
+
+        if let headers {
+            #expect(headers == request.allHTTPHeaderFields)
+        }
+
+        // fixme rickb    XCTAssertEqual(request.httpMethod, endpoint.method.rawValue)
     }
-// fixme rickb    XCTAssertEqual(request.httpMethod, endpoint.method.rawValue)
 }
 
-func endpointRequestMatches<T: Endpoint>(
-    _ endpoint: T,
-    baseURL: URL,
-    matchingURL url: String? = nil,
-    matchingHeaders headers: [String: String]? = nil,
-    decoder: JSONDecoder
-) async throws where T.Parameters: Codable & Equatable {
+extension Endpoint where Parameters: Codable & Equatable {
 
-    let request = try await URLRequest(baseURL: baseURL, endpoint: endpoint)
-    if let url {
-        let requestURL = try #require(URL(string: url))
-        #expect(request.url == requestURL)
+    func requestMatches(
+        url: String? = nil,
+        headers: [String: String]? = nil,
+        decoder: JSONDecoder = JSONDecoder()
+    ) async throws {
+        let request = try await URLRequest(baseURL: testBaseURL, endpoint: self)
+        if let url {
+            let requestURL = try #require(URL(string: url))
+            #expect(request.url == requestURL)
+        }
+
+        let parameters = try decoder.decode(Parameters.self, from: request.httpBody!)
+        #expect(self.parameters == parameters)
+
+        if let headers {
+            let keys = headers.keys
+            #expect(headers == request.allHTTPHeaderFields?.filter { keys.contains($0.key) })
+        }
+
+        // fixme rickb    XCTAssertEqual(request.httpMethod, endpoint.method.rawValue)
     }
-
-    let parameters = try decoder.decode(T.Parameters.self, from: request.httpBody!)
-    #expect(endpoint.parameters == parameters)
-
-    if let headers {
-        let keys = headers.keys
-        #expect(headers == request.allHTTPHeaderFields?.filter { keys.contains($0.key) })
-    }
-
-// fixme rickb    XCTAssertEqual(request.httpMethod, endpoint.method.rawValue)
 }
 
 struct TestDataProvider: URLRequestDataProvider {
@@ -74,7 +76,7 @@ struct TestDataProvider: URLRequestDataProvider {
     }
 
     func request<T: Endpoint>(_ endpoint: T) async throws -> T.Response {
-        try await request(baseURL: .init(string: "https://www.rickb.com")!, endpoint: endpoint)
+        try await request(baseURL: testBaseURL, endpoint: endpoint)
     }
 
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
