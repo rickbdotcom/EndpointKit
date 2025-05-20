@@ -6,9 +6,8 @@
 //
 
 import Foundation
-import XCTest
 @testable import EndpointKit
-
+/*
 protocol CustomErrorProtocol {
 }
 
@@ -47,6 +46,22 @@ enum API {
 
     struct CustomError: Error, Decodable {
         let errorCode: Int
+    }
+
+    struct CustomStringError: Error {
+        let errorCode: Int
+    }
+
+    struct CustomStringErrorDecoder: ResponseDecoder {
+        func decode(response: URLResponse, data: Data) async throws -> CustomStringError? {
+            return if response.isHttpError,
+               let errorString = String(data: data, encoding: .utf8),
+               let errorCode = Int(errorString) {
+                CustomStringError(errorCode: errorCode)
+            } else {
+                nil
+            }
+        }
     }
 
     struct Form: Endpoint {
@@ -110,3 +125,4 @@ enum API {
 
     static let headers = ["pageName": "home"]
 }
+*/

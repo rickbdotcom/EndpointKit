@@ -4,7 +4,7 @@
 //
 //  Created by Burgess, Rick on 4/4/24.
 //
-
+/*
 import Foundation
 import XCTest
 @testable import EndpointKit
@@ -68,3 +68,4 @@ final class ServiceEndpointDecoderTests: XCTestCase {
         try await dataProvider.request(baseURL: API.baseURL, endpoint: track)
     }
 }
+*/

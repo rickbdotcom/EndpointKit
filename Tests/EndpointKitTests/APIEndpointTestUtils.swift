@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import XCTest
+import Testing
 @testable import EndpointKit
 
 func endpointRequestMatches<T: Endpoint>(
@@ -18,19 +18,19 @@ func endpointRequestMatches<T: Endpoint>(
 ) async throws {
     let request = try await URLRequest(baseURL: baseURL, endpoint: endpoint)
     if let url {
-        try XCTAssertEqual(request.url, XCTUnwrap(URL(string: url)))
+        let requestURL = try #require(URL(string: url))
+        #expect(request.url == requestURL)
     }
 
     if let httpBody {
-        let requestBody = try XCTUnwrap(request.httpBody.flatMap { String(data: $0, encoding: .utf8) })
-        XCTAssertEqual(httpBody, requestBody)
+        let requestBody = try #require(request.httpBody.flatMap { String(data: $0, encoding: .utf8) })
+        #expect(httpBody == requestBody)
     }
 
     if let headers {
         let keys = headers.keys
-        XCTAssertEqual(headers, request.allHTTPHeaderFields?.filter { keys.contains($0.key) })
+        #expect(headers == request.allHTTPHeaderFields?.filter { keys.contains($0.key) })
     }
-
 // fixme rickb    XCTAssertEqual(request.httpMethod, endpoint.method.rawValue)
 }
 
@@ -44,23 +44,24 @@ func endpointRequestMatches<T: Endpoint>(
 
     let request = try await URLRequest(baseURL: baseURL, endpoint: endpoint)
     if let url {
-        try XCTAssertEqual(request.url, XCTUnwrap(URL(string: url)))
+        let requestURL = try #require(URL(string: url))
+        #expect(request.url == requestURL)
     }
 
     let parameters = try decoder.decode(T.Parameters.self, from: request.httpBody!)
-    XCTAssertEqual(endpoint.parameters, parameters)
+    #expect(endpoint.parameters == parameters)
 
     if let headers {
         let keys = headers.keys
-        XCTAssertEqual(headers, request.allHTTPHeaderFields?.filter { keys.contains($0.key) })
+        #expect(headers == request.allHTTPHeaderFields?.filter { keys.contains($0.key) })
     }
 
 // fixme rickb    XCTAssertEqual(request.httpMethod, endpoint.method.rawValue)
 }
 
 struct TestDataProvider: URLRequestDataProvider {
-    let body: Data
-    let statusCode: Int
+    var body: Data
+    var statusCode: Int
 
     init(body: Data = Data(), statusCode: Int = 200) {
         self.body = body
@@ -72,17 +73,29 @@ struct TestDataProvider: URLRequestDataProvider {
         self.statusCode = statusCode
     }
 
+    func request<T: Endpoint>(endpoint: T) async throws -> T.Response {
+        try await request(baseURL: .init(string: "https://www.rickb.com")!, endpoint: endpoint)
+    }
+
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        try (
-            body,
-            XCTUnwrap(
-                HTTPURLResponse(
-                    url: XCTUnwrap(request.url),
-                    statusCode: statusCode,
-                    httpVersion: "1.1",
-                    headerFields: nil
-                )
+        let url = try #require(request.url)
+        let response = try #require(
+            HTTPURLResponse(
+                url: url,
+                statusCode: statusCode,
+                httpVersion: "1.1",
+                headerFields: nil
             )
         )
+        return (body, response)
+    }
+}
+
+struct TestEmptyEndpoint: Endpoint {
+    typealias Response = Void
+    let route: Route
+
+    init(_ method: HTTPMethod = .get, path: String = #function) {
+        route = .init(method, path)
     }
 }

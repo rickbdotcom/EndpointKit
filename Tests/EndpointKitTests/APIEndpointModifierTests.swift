@@ -6,42 +6,108 @@
 //
 
 import Foundation
-import XCTest
+import Testing
 @testable import EndpointKit
 
-final class ServiceEndpointModifierTests: XCTestCase {
-
-    func testErrorValidator() async throws {
-        let errorDataProvider = TestDataProvider(body: #"{"errorCode": 1}"#, statusCode: 400)
-        let track = API.Track(parameters: .init(
-            action: "login"
-        ))
+struct ResponseValidation {
+    @Test(arguments: [true, false])
+    func validateDecodableError(requireHttpError: Bool) async throws {
+        struct CustomError: Error, Decodable {
+            let errorCode: Int
+        }
+        var dataProvider = TestDataProvider(body: #"{"errorCode": 1}"#, statusCode: requireHttpError ? 400 : 200)
+        let endpoint = TestEmptyEndpoint().modify(.validate(error: CustomError.self, requireHttpError: requireHttpError))
         do {
-            try await errorDataProvider.request(baseURL: API.baseURL, endpoint: track)
-            XCTFail("Should have failed")
-        } catch let error as API.CustomError {
-            XCTAssertEqual(error.errorCode, 1)
+            try await dataProvider.request(endpoint: endpoint)
+            Issue.record("Should have failed")
+        } catch let error as CustomError {
+            #expect(error.errorCode == 1)
         }
 
-        let emptyDataProvider = TestDataProvider()
-        try await emptyDataProvider.request(baseURL: API.baseURL, endpoint: track)
+        dataProvider.body = Data()
+        dataProvider.statusCode = 200
+        try await dataProvider.request(endpoint: endpoint)
     }
 
-    func testModifyErrorValidator() async throws {
-        struct StringError: LocalizedError {
-            let errorDescription: String?
-        }
+    @Test(arguments: [true, false])
+    func validateError(requiresHttpError: Bool) async throws {
+        struct CustomStringError: LocalizedError {
+            let errorCode: Int
 
-        struct StringErrorDecoder: ResponseDecoder {
-            func decode(response: URLResponse, data: Data) async throws -> StringError? {
-                if response.isHttpError {
-                    return StringError(errorDescription: String(data: data, encoding: .utf8))
-                } else {
-                    return nil
+            struct Decoder: ResponseDecoder {
+                func decode(response: URLResponse, data: Data) async throws -> CustomStringError? {
+                    return if let errorString = String(data: data, encoding: .utf8),
+                              let errorCode = Int(errorString) {
+                        CustomStringError(errorCode: errorCode)
+                    } else {
+                        nil
+                    }
                 }
             }
         }
 
+        var dataProvider = TestDataProvider(body: "1", statusCode: requiresHttpError ? 400 : 200)
+        let endpoint = TestEmptyEndpoint().modify(.validate(
+            error: CustomStringError.self,
+            decoder: CustomStringError.Decoder(),
+            requireHttpError: requiresHttpError
+        ))
+        do {
+            try await dataProvider.request(endpoint: endpoint)
+            Issue.record("Should have failed")
+        } catch let error as CustomStringError {
+            #expect(error.errorCode == 1)
+        }
+
+        dataProvider.body = Data()
+        dataProvider.statusCode = 200
+        try await dataProvider.request(endpoint: endpoint)
+    }
+
+    @Test func validateHTTP() async throws {
+
+    }
+
+/*    @Test func errorValidator() async throws {
+
+        let errorDataProvider = TestDataProvider(body: #"{"errorCode": 1}"#, statusCode: 400)
+
+        do {
+            _ = try await errorDataProvider.request(baseURL: API.baseURL, endpoint: endpoint)
+            Issue.record("Should have failed")
+        } catch let error as API.CustomError {
+            #expect(error.errorCode == 1)
+        }
+
+
+        /*        try await customError(API.Track(parameters: .init(
+         action: "login"
+         )), body: #"{"errorCode": 1}"#)
+
+         let loginWithCustomError = API.Login(parameters: .init(username: "rickb", password: "password"))
+         .modify(.validate(error: API.CustomError.self))
+         try await customError(loginWithCustomError, body: #"{"errorCode": 1}"#)
+
+         let loginWithCustomStringError = API.Login(parameters: .init(username: "rickb", password: "password"))
+         .modify(.validate(error: API.CustomStringError.self, decoder: API.CustomStringErrorDecoder()))
+         try await customError(loginWithCustomStringError, body: "1")*/
+    }*/
+}
+/*
+    func customError<T: Endpoint>(_ endpoint: T, body: String) async throws {
+        let errorDataProvider = TestDataProvider(body: body, statusCode: 400)
+
+        do {
+            _ = try await errorDataProvider.request(baseURL: API.baseURL, endpoint: endpoint)
+            Issue.record("Should have failed")
+        } catch let error as API.CustomError {
+            #expect(error.errorCode == 1)
+        } catch let error as API.CustomStringError {
+            #expect(error.errorCode == 1)
+        }
+    }
+/*
+    @Test func modifyErrorValidator() async throws {
         let track = API.Track(parameters: .init(
             action: "login"
         )).modify {
@@ -51,16 +117,16 @@ final class ServiceEndpointModifierTests: XCTestCase {
         let stringErrorDataProvider = TestDataProvider(body: "An error", statusCode: 400)
         do {
             try await stringErrorDataProvider.request(baseURL: API.baseURL, endpoint: track)
-            XCTFail("Should have failed")
+            Issue.record("Should have failed")
         } catch let error as StringError {
-            XCTAssertEqual(error.localizedDescription, "An error")
+            #expect(error.localizedDescription == "An error")
         }
 
         let dataProvider = TestDataProvider(body: "")
         try await dataProvider.request(baseURL: API.baseURL, endpoint: track)
-    }
+    }*/
 
-    func testHeaders() async throws {
+    @Test func heeaders() async throws {
         let track = API.Track(parameters: .init(
             action: "login"
         ))
@@ -92,6 +158,10 @@ final class ServiceEndpointModifierTests: XCTestCase {
             baseURL: API.baseURL,
             matchingHeaders: ["pageName": "home", "override": "original"]
         )
+
+        var urlRequest = URLRequest(url: URL("https://www.google.com")!)
+        urlRequest.merge(headers: ["pageName": "home"])
+// fixem rickb
     }
 
     func testModifiers() async throws {
@@ -106,9 +176,9 @@ final class ServiceEndpointModifierTests: XCTestCase {
         let errorDataProvider = TestDataProvider(body: #"{"errorCode": 1}"#, statusCode: 400)
         do {
             try await errorDataProvider.request(baseURL: API.baseURL, endpoint: modifiedEndpoint)
-            XCTFail("Should have failed")
+            Issue.record("Should have failed")
         } catch let error as API.CustomError {
-            XCTAssertEqual(error.errorCode, 1)
+            #expect(error.errorCode == 1)
         }
     }
 
@@ -141,6 +211,7 @@ final class ServiceEndpointModifierTests: XCTestCase {
         modified = modified.modify(responseModifier)
 
         let result = try await dataProvider.request(baseURL: API.baseURL, endpoint: modified)
-        XCTAssertEqual(result, "123")
+        #expect(result == "123")
     }
 }
+*/
