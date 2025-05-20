@@ -4,10 +4,10 @@
 //
 //  Created by Burgess, Rick on 4/4/24.
 //
-
+/*
 import Foundation
 @testable import EndpointKit
-/*
+
 protocol CustomErrorProtocol {
 }
 

@@ -10,27 +10,22 @@ import Testing
 @testable import EndpointKit
 
 struct ResponseValidation {
+
     @Test(arguments: [true, false])
     func validateDecodableError(requireHttpError: Bool) async throws {
         struct CustomError: Error, Decodable {
             let errorCode: Int
         }
-        var dataProvider = TestDataProvider(body: #"{"errorCode": 1}"#, statusCode: requireHttpError ? 400 : 200)
+
         let endpoint = TestEmptyEndpoint().modify(.validate(error: CustomError.self, requireHttpError: requireHttpError))
-        do {
-            try await dataProvider.request(endpoint: endpoint)
-            Issue.record("Should have failed")
-        } catch let error as CustomError {
+        var dataProvider = TestDataProvider(body: #"{"errorCode": 1}"#, statusCode: requireHttpError ? 400 : 200)
+        try await dataProvider.testResponseValidation(endpoint) { (error: CustomError) in
             #expect(error.errorCode == 1)
         }
-
-        dataProvider.body = Data()
-        dataProvider.statusCode = 200
-        try await dataProvider.request(endpoint: endpoint)
     }
 
     @Test(arguments: [true, false])
-    func validateError(requiresHttpError: Bool) async throws {
+    func validateError(requireHttpError: Bool) async throws {
         struct CustomStringError: LocalizedError {
             let errorCode: Int
 
@@ -46,26 +41,24 @@ struct ResponseValidation {
             }
         }
 
-        var dataProvider = TestDataProvider(body: "1", statusCode: requiresHttpError ? 400 : 200)
         let endpoint = TestEmptyEndpoint().modify(.validate(
             error: CustomStringError.self,
             decoder: CustomStringError.Decoder(),
-            requireHttpError: requiresHttpError
+            requireHttpError: requireHttpError
         ))
-        do {
-            try await dataProvider.request(endpoint: endpoint)
-            Issue.record("Should have failed")
-        } catch let error as CustomStringError {
+        var dataProvider = TestDataProvider(body: "1", statusCode: requireHttpError ? 400 : 200)
+        try await dataProvider.testResponseValidation(endpoint) { (error: CustomStringError) in
             #expect(error.errorCode == 1)
         }
-
-        dataProvider.body = Data()
-        dataProvider.statusCode = 200
-        try await dataProvider.request(endpoint: endpoint)
     }
 
-    @Test func validateHTTP() async throws {
-
+    @Test
+    func validateHTTP() async throws {
+        let endpoint = TestEmptyEndpoint().modify(.validateHTTP())
+        var dataProvider = TestDataProvider(statusCode: 400)
+        try await dataProvider.testResponseValidation(endpoint) { (error: HTTPError) in
+            #expect(error.response.httpStatusCode == 400)
+        }
     }
 
 /*    @Test func errorValidator() async throws {
@@ -215,3 +208,25 @@ struct ResponseValidation {
     }
 }
 */
+
+extension TestDataProvider {
+
+    mutating
+    func testResponseValidation<T: Endpoint,U: Error>(
+        _ endpoint: T,
+        _ error: U.Type = U.self,
+        expect: @escaping (U) -> Void
+    ) async throws {
+        do {
+            _ = try await request(endpoint)
+            Issue.record("Should have failed")
+        } catch let error as U {
+            expect(error)
+        }
+
+        body = Data()
+        statusCode = 200
+        _ = try await request(endpoint)
+    }
+}
+

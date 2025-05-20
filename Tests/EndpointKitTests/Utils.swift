@@ -73,7 +73,7 @@ struct TestDataProvider: URLRequestDataProvider {
         self.statusCode = statusCode
     }
 
-    func request<T: Endpoint>(endpoint: T) async throws -> T.Response {
+    func request<T: Endpoint>(_ endpoint: T) async throws -> T.Response {
         try await request(baseURL: .init(string: "https://www.rickb.com")!, endpoint: endpoint)
     }
 
