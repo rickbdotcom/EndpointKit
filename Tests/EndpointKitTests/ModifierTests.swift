@@ -9,6 +9,115 @@ import Foundation
 import Testing
 @testable import EndpointKit
 
+struct RequestAuthorization {
+
+    @Test func bearer() async throws {
+        try await TestEmptyEndpoint()
+            .modify(.authorize(with: BearerAuthorization(userName: "rickb", password: "test", key: "key")))
+            .requestMatches(
+                headers: ["key": "Bearer cmlja2I6dGVzdA=="]
+            )
+
+        try await TestEmptyEndpoint()
+            .modify(.authorize(with: BearerAuthorization(userName: "rickb", password: "test")))
+            .requestMatches(
+                headers: ["Authorization": "Bearer cmlja2I6dGVzdA=="]
+            )
+
+        try await TestEmptyEndpoint()
+            .modify(.authorize(with: BearerAuthorization(authToken: "cmlja2I6dGVzdA==")))
+            .requestMatches(
+                headers: ["Authorization": "Bearer cmlja2I6dGVzdA=="]
+            )
+    }
+
+    @Test func basic() async throws {
+        try await TestEmptyEndpoint()
+            .modify(.authorize(with: BasicAuthorization(authToken: "token", key: "key")))
+            .requestMatches(
+                headers: ["key": "Basic token"]
+            )
+
+        try await TestEmptyEndpoint()
+            .modify(.authorize(with: BasicAuthorization(authToken: "token")))
+            .requestMatches(
+                headers: ["Authorization": "Basic token"]
+            )
+    }
+}
+
+struct RequestCachePolicy {
+
+    @Test(arguments: [
+            URLRequest.CachePolicy.useProtocolCachePolicy,
+            .reloadIgnoringLocalCacheData,
+            .reloadIgnoringLocalAndRemoteCacheData,
+            .returnCacheDataElseLoad,
+            .returnCacheDataDontLoad,
+            .reloadRevalidatingCacheData
+        ]
+    )
+    func cachePolicy(cachePolicy: URLRequest.CachePolicy) async throws {
+        let endpoint = TestEmptyEndpoint()
+            .modify(.cachePolicy(cachePolicy))
+
+        let request = try await URLRequest(baseURL: testBaseURL, endpoint: endpoint)
+        #expect(request.cachePolicy == cachePolicy)
+    }
+}
+
+struct RequestContentType {
+
+    @Test func contentType() async throws {
+        try await TestEmptyEndpoint()
+            .modify(.contentType("application/json"))
+            .requestMatches(
+                headers: ["Content-Type": "application/json"]
+            )
+    }
+}
+
+struct RequestcURL {
+
+}
+
+struct RequestHeader {
+
+    @Test func mergeRemoveHeaders() async throws {
+        try await TestEmptyEndpoint()
+            .modify(.merge(headers: ["pageName": "original", "auth": "123", "remove": "me"]))
+            .modify(.merge(headers: ["pageName": "home"]))
+            .modify(.merge(headers: ["pageName": "dontChange"], uniquingKeysWith: { a, _ in a }))
+            .modify(.remove(headers: ["remove"]))
+            .requestMatches(
+                headers: [
+                    "pageName": "home", "auth": "123"
+                ]
+            )
+    }
+
+    @Test func urlRequestHeaders() async throws {
+        let urlRequest = URLRequest(url: testBaseURL)
+            .merge(headers: ["pageName": "original", "auth": "123", "remove": "me"])
+            .merge(headers: ["pageName": "home"])
+            .remove(headers: ["remove"])
+
+        #expect(urlRequest.allHTTPHeaderFields == ["pageName": "home", "auth": "123"])
+    }
+}
+
+struct RequestTimeout {
+
+}
+
+struct RequestURL {
+
+}
+
+struct ResponsePrint {
+
+}
+
 struct ResponseValidation {
 
     @Test(arguments: [true, false])
@@ -58,42 +167,6 @@ struct ResponseValidation {
         try await dataProvider.testResponseValidation(endpoint) { (error: HTTPError) in
             #expect(error.response.httpStatusCode == 400)
         }
-    }
-}
-
-struct RequestHeader {
-
-    @Test func mergeRemoveHeaders() async throws {
-        try await TestEmptyEndpoint()
-            .modify(.merge(headers: ["pageName": "original", "auth": "123", "remove": "me"]))
-            .modify(.merge(headers: ["pageName": "home"]))
-            .modify(.merge(headers: ["pageName": "dontChange"], uniquingKeysWith: { a, _ in a }))
-            .modify(.remove(headers: ["remove"]))
-            .requestMatches(
-                headers: [
-                    "pageName": "home", "auth": "123"
-                ]
-            )
-    }
-
-    @Test func urlRequestHeaders() async throws {
-        let urlRequest = URLRequest(url: testBaseURL)
-            .merge(headers: ["pageName": "original", "auth": "123", "remove": "me"])
-            .merge(headers: ["pageName": "home"])
-            .remove(headers: ["remove"])
-
-        #expect(urlRequest.allHTTPHeaderFields == ["pageName": "home", "auth": "123"])
-    }
-}
-
-struct RequestContentType {
-
-    @Test func contentType() async throws {
-        try await TestEmptyEndpoint()
-            .modify(.contentType("application/json"))
-            .requestMatches(
-                headers: ["Content-Type": "application/json"]
-            )
     }
 }
 

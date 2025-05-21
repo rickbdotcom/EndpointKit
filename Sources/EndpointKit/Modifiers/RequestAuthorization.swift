@@ -23,8 +23,10 @@ public struct BearerAuthorization: Authorization {
     }
 
     public init(userName: String, password: String, key: String? = nil) {
-        self.authToken = Data(base64Encoded: [userName, password].joined(separator: ":"))?.base64EncodedString() ?? ""
-        self.key = key ?? defaultAuthorizationKey
+        self = .init(
+            authToken: [userName, password].joined(separator: ":").data(using: .utf8)?.base64EncodedString() ?? "",
+            key:  key ?? defaultAuthorizationKey
+        )
     }
 
     public func authorize(request: URLRequest) -> URLRequest {
@@ -58,7 +60,9 @@ public extension URLRequest {
 
 extension AnyEndpointModifier {
     public static func authorize(with authorization: any Authorization) -> Self {
-        RequestModifier { $0.authorize(with: authorization) }.any()
+        RequestModifier {
+            $0.authorize(with: authorization)
+        }.any()
     }
 }
 

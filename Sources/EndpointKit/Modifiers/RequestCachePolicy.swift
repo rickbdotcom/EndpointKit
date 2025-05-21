@@ -10,7 +10,9 @@ import Foundation
 extension AnyEndpointModifier {
     /// Creates a modifier that modifies the endpoint's URLRequest cachePolicy
     public static func cachePolicy(_ policy: URLRequest.CachePolicy) -> Self {
-        RequestModifier { $0.cachePolicy(policy) }.any()
+        RequestModifier {
+            $0.cachePolicy(policy)
+        }.any()
     }
 }
 

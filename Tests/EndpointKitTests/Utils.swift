@@ -15,9 +15,10 @@ extension Endpoint {
     func requestMatches(
         url: String? = nil,
         body: String? = nil,
-        headers: [String: String]? = nil,
+        headers: [String: String]? = nil
     ) async throws {
         let request = try await URLRequest(baseURL: testBaseURL, endpoint: self)
+
         if let url {
             let requestURL = try #require(URL(string: url))
             #expect(request.url == requestURL)
@@ -29,6 +30,7 @@ extension Endpoint {
         }
 
         if let headers {
+            print(headers)
             #expect(headers == request.allHTTPHeaderFields)
         }
 
