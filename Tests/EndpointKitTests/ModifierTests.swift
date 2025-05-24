@@ -56,8 +56,7 @@ struct RequestCachePolicy {
             .returnCacheDataDontLoad,
             .reloadRevalidatingCacheData
         ]
-    )
-    func cachePolicy(cachePolicy: URLRequest.CachePolicy) async throws {
+    ) func cachePolicy(cachePolicy: URLRequest.CachePolicy) async throws {
         let endpoint = TestEmptyEndpoint()
             .modify(.cachePolicy(cachePolicy))
 
@@ -70,15 +69,99 @@ struct RequestContentType {
 
     @Test func contentType() async throws {
         try await TestEmptyEndpoint()
-            .modify(.contentType("application/json"))
+            .modify(.contentType("text/html"))
             .requestMatches(
-                headers: ["Content-Type": "application/json"]
+                headers: ["Content-Type": "text/html"]
             )
     }
 }
 
 struct RequestcURL {
 
+    @Test func curlPOST() async throws {
+        struct TestCurlEndpoint: Endpoint {
+            struct Parameters: Encodable {
+                let name: String
+            }
+            typealias Response = Void
+            let parameters: Parameters
+            let route = POST("curl")
+        }
+        let endpoint = TestCurlEndpoint(parameters: .init(name: "rickb"))
+            .modify(.curl())
+        
+        let request = try await URLRequest(
+            baseURL: testBaseURL,
+            endpoint: endpoint
+        )
+        let expectedCurl = """
+        curl -f -X POST --url 'https://www.rickb.com/curl' -H 'Content-Type: application/json' --data '{"name":"rickb"}'
+        """
+        #expect(request.curl() == expectedCurl)
+    }
+
+    @Test func curlGET() async throws {
+        let endpoint = TestEmptyEndpoint()
+            .modify(.curl())
+
+        let request = try await URLRequest(
+            baseURL: testBaseURL,
+            endpoint: endpoint
+        )
+        let expectedCurl = "curl -f -X GET --url 'https://www.rickb.com/curlGET()' "
+        #expect(request.curl() == expectedCurl)
+    }
+
+    @Test func get() throws {
+        let curl = "curl https://example.com/api"
+        let request = try #require(URLRequest(curl: curl))
+        #expect(request.httpMethod == "GET")
+        #expect(request.url?.absoluteString == "https://example.com/api")
+        #expect(request.httpBody == nil)
+        #expect(request.allHTTPHeaderFields?.isEmpty == true)
+    }
+
+    @Test func post() throws {
+        let curl = """
+        curl -X POST "https://example.com/api" \
+        -H 'Content-Type: application/json' \
+        -H 'Content-Type: application/json' \
+        --data '{\"name\":\"John\"}'
+        """
+        let request = try #require(URLRequest(curl: curl))
+        #expect(request.httpMethod == "POST")
+        #expect(request.url?.absoluteString == "https://example.com/api")
+        #expect(request.allHTTPHeaderFields?["Content-Type"] == "application/json")
+        #expect(String(data: request.httpBody ?? Data(), encoding: .utf8) == "{\"name\":\"John\"}")
+    }
+
+    @Test func headers() throws {
+        let curl = """
+        curl -X GET https://example.com \
+        -H 'Accept: application/json' \
+        -H 'Authorization: Bearer token123'
+        """
+        let request = try #require(URLRequest(curl: curl))
+        #expect(request.httpMethod == "GET")
+        #expect(request.allHTTPHeaderFields?["Accept"] == "application/json")
+        #expect(request.allHTTPHeaderFields?["Authorization"] == "Bearer token123")
+    }
+
+    @Test func missinURL() {
+        let curl = "curl -X POST -H 'Content-Type: application/json' --data '{\"test\":true}'"
+        #expect(URLRequest(curl: curl) == nil)
+    }
+
+    @Test func rawData() throws {
+        let curl = """
+        curl -X PUT https://example.com/update \
+        --data-raw 'update=true'
+        """
+        let request = try #require(URLRequest(curl: curl))
+        #expect(request.httpMethod == "PUT")
+        #expect(request.url?.absoluteString == "https://example.com/update")
+        #expect(String(data: request.httpBody ?? Data(), encoding: .utf8) == "update=true")
+    }
 }
 
 struct RequestHeader {
@@ -108,14 +191,60 @@ struct RequestHeader {
 
 struct RequestTimeout {
 
+    @Test func timeout() async throws {
+        let endpoint = TestEmptyEndpoint()
+            .modify(.timeout(120))
+
+        let urlRequest = try await  URLRequest(baseURL: testBaseURL, endpoint: endpoint)
+
+        #expect(urlRequest.timeoutInterval == 120)
+    }
 }
 
 struct RequestURL {
 
+    @Test func map() async throws {
+        let endpoint = TestEmptyEndpoint()
+            .modify(.map { _ in
+                URL(string: "https://example.com")!
+            })
+
+        let urlRequest = try await URLRequest(baseURL: testBaseURL, endpoint: endpoint)
+
+        #expect(urlRequest.url == URL(string: "https://example.com"))
+    }
+
+    @Test func mapURL() async throws {
+        let endpoint = TestEmptyEndpoint()
+            .modify(.mapURLComponents(host: "example.com", path: "/test"))
+
+        let urlRequest = try await URLRequest(baseURL: testBaseURL, endpoint: endpoint)
+
+        #expect (urlRequest.url == URL(string:"https://example.com/test"))
+    }
+
+    @Test func testMapURLComponents() async throws {
+        let endpoint = TestEmptyEndpoint()
+            .modify(.map { _ in
+                URLComponents(string: "https://example.com/test")!
+            })
+
+        let urlRequest = try await URLRequest(baseURL: testBaseURL, endpoint: endpoint)
+
+        #expect (urlRequest.url == URL(string:"https://example.com/test"))
+    }
 }
 
 struct ResponsePrint {
 
+    @Test func printResponse() async throws {
+        let endpoint = TestEmptyEndpoint()
+            .modify(.printResponse())
+
+        let dataProvider = TestDataProvider()
+
+        try await dataProvider.request(endpoint)
+    }
 }
 
 struct ResponseValidation {

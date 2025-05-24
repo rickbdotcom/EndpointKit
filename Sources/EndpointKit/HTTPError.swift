@@ -16,7 +16,7 @@ public struct HTTPError: LocalizedError {
     public let response: HTTPURLResponse
 
     /// The HTTP status code from the response
-    public var statusCode: Int { response.statusCode }
+    public var statusCode: Int { response.httpStatusCode }
 
     /// Implementation of Error localized description
     public var errorDescription: String? {

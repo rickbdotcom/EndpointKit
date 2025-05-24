@@ -34,7 +34,7 @@ extension Endpoint {
             #expect(headers == request.allHTTPHeaderFields)
         }
 
-        // fixme rickb    XCTAssertEqual(request.httpMethod, endpoint.method.rawValue)
+        #expect(request.httpMethod == route.method.rawValue)
     }
 }
 
@@ -59,7 +59,7 @@ extension Endpoint where Parameters: Codable & Equatable {
             #expect(headers == request.allHTTPHeaderFields?.filter { keys.contains($0.key) })
         }
 
-        // fixme rickb    XCTAssertEqual(request.httpMethod, endpoint.method.rawValue)
+        #expect(request.httpMethod == route.method.rawValue)
     }
 }
 
@@ -73,7 +73,7 @@ struct TestDataProvider: URLRequestDataProvider {
     }
 
     init(body: String, statusCode: Int = 200) {
-        self.body = body.data(using: .utf8) ?? Data()
+        self.body = Data(body.utf8)
         self.statusCode = statusCode
     }
 

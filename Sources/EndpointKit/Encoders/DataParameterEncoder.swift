@@ -11,13 +11,16 @@ import Foundation
 public struct DataParameterEncoder: RequestEncoder {
     public typealias Parameters = Data
 
-    public init() {
+    let contentType: String
+
+    public init(contentType: String? = nil) {
+        self.contentType = contentType ?? ContentType.octetStream
     }
 
     /// Encode implementation
     public func encode(_ parameters: Parameters, into request: URLRequest) throws -> URLRequest {
         var modifiedRequest = request
-        modifiedRequest.setValue(ContentType.octetStream, forHTTPHeaderField: ContentType.header)
+        modifiedRequest.setValue(contentType, forHTTPHeaderField: ContentType.header)
         modifiedRequest.httpBody = parameters
         return modifiedRequest
     }

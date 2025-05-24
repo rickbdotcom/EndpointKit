@@ -24,7 +24,7 @@ public struct BearerAuthorization: Authorization {
 
     public init(userName: String, password: String, key: String? = nil) {
         self = .init(
-            authToken: [userName, password].joined(separator: ":").data(using: .utf8)?.base64EncodedString() ?? "",
+            authToken: Data([userName, password].joined(separator: ":").utf8).base64EncodedString(),
             key:  key ?? defaultAuthorizationKey
         )
     }
