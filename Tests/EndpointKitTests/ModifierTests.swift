@@ -200,10 +200,12 @@ struct RequestHeader {
 
     @Test func mergeRemoveHeaders() async throws {
         try await TestModifiedEndpoint()
-            .modify(.merge(headers: ["pageName": "original", "auth": "123", "remove": "me"]))
-            .modify(.merge(headers: ["pageName": "home"]))
-            .modify(.merge(headers: ["pageName": "dontChange"], uniquingKeysWith: { a, _ in a }))
-            .modify(.remove(headers: ["remove"]))
+            .modify([
+                .merge(headers: ["pageName": "original", "auth": "123", "remove": "me"]),
+                .merge(headers: ["pageName": "home"]),
+                .merge(headers: ["pageName": "dontChange"], uniquingKeysWith: { a, _ in a }),
+                .remove(headers: ["remove"])
+            ])
             .requestMatches(
                 headers: [
                     "pageName": "home", "auth": "123"

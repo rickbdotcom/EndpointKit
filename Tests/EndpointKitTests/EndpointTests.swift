@@ -7,18 +7,7 @@
 import Testing
 import Foundation
 @testable import EndpointKit
-/*
- @Test func getEmptyParameterEmptyResponse() async throws {
- struct TestEndpoint: Endpoint {
- typealias Parameters = Void
- typealias Response = Void
- let route: Route = GET("/")
- }
 
- try await TestClient().request(TestEndpoint())
- }
-
- */
 struct RouteTests {
     @Test(arguments: [
         (GET("get"), HTTPMethod.get),
