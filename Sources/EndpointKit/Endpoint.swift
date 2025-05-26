@@ -1,5 +1,5 @@
 //
-//  APIEndpoint.swift
+//  Endpoint.swift
 //
 //  Created by Richard Burgess on 6/13/2023
 //
@@ -29,7 +29,7 @@ public extension Endpoint where Parameters == Void {
     var parameters: Void { () }
 }
 
-public protocol APIEndpointClient {
+public protocol EndpointClient {
     func request<T: Endpoint>(_ endpoint: T) async throws -> T.Response
 }
 

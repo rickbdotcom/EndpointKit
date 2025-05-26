@@ -18,15 +18,6 @@ public struct RequestModifier<Parameters, Response>: EndpointModifier {
         self.parameterEncoder = parameterEncoder
     }
 
-    /// Create parameter modifier from function
-    public init(_ encode: @escaping (any RequestEncoder<Parameters>, Parameters, URLRequest) async throws -> URLRequest) {
-        parameterEncoder = { encoder in
-            AnyRequestEncoder { parameters, request in
-                try await encode(encoder, parameters, request)
-            }
-        }
-    }
-
     /// Implementation of parameter modifier
     public func modify<T: Endpoint>(_ endpoint: T) -> AnyEndpoint<T.Parameters, T.Response>
     where T.Parameters == Parameters, T.Response == Response {

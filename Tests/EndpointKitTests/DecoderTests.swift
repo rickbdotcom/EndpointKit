@@ -12,7 +12,7 @@ import Foundation
 struct AnyResponseDecoderTests {
 
     @Test func decode() async throws {
-        let testData = Data()
+        let testData = Data([1, 2, 3])
         let testResponse = URLResponse()
 
         let decoder = AnyResponseDecoder<Int> { response, data in
@@ -118,7 +118,35 @@ struct JSONDecodableResponseDecoderTests {
     }
 }
 
-struct SerializedJSONResponseDecoderTests {
+struct JSONSerializationResponseDecoderTests {
+
+    @Test func decode() throws {
+        let data = Data("""
+            {
+                "firstName": "Rick",
+                "isElite": true,
+                "miles": 100
+            }
+            """.utf8)
+        let expectedResponse: [String: Any] = [
+            "firstName": "Rick",
+            "isElite": true,
+            "miles": 100
+        ]
+        let decoder = JSONSerializationResponseDecoder<[String: Any]>()
+        let response = try decoder.decode(response: .init(), data: data)
+        #expect(NSDictionary(dictionary: response) == NSDictionary(dictionary: expectedResponse))
+    }
+
+    @Test func error() throws {
+        let data = Data(#"{"name": "Rick"}"#.utf8)
+        let decoder = JSONSerializationResponseDecoder<Date>()
+        do {
+            _ = try decoder.decode(response: .init(), data: data)
+        } catch {
+            print(error)
+        }
+    }
 }
 
 struct StringResponseDecoderTests {

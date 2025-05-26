@@ -15,19 +15,19 @@ import UIKit
 struct RequestAuthorization {
 
     @Test func bearer() async throws {
-        try await TestEmptyEndpoint()
+        try await TestModifiedEndpoint()
             .modify(.authorize(with: BearerAuthorization(userName: "rickb", password: "test", key: "key")))
             .requestMatches(
                 headers: ["key": "Bearer cmlja2I6dGVzdA=="]
             )
 
-        try await TestEmptyEndpoint()
+        try await TestModifiedEndpoint()
             .modify(.authorize(with: BearerAuthorization(userName: "rickb", password: "test")))
             .requestMatches(
                 headers: ["Authorization": "Bearer cmlja2I6dGVzdA=="]
             )
 
-        try await TestEmptyEndpoint()
+        try await TestModifiedEndpoint()
             .modify(.authorize(with: BearerAuthorization(authToken: "cmlja2I6dGVzdA==")))
             .requestMatches(
                 headers: ["Authorization": "Bearer cmlja2I6dGVzdA=="]
@@ -35,13 +35,13 @@ struct RequestAuthorization {
     }
 
     @Test func basic() async throws {
-        try await TestEmptyEndpoint()
+        try await TestModifiedEndpoint()
             .modify(.authorize(with: BasicAuthorization(authToken: "token", key: "key")))
             .requestMatches(
                 headers: ["key": "Basic token"]
             )
 
-        try await TestEmptyEndpoint()
+        try await TestModifiedEndpoint()
             .modify(.authorize(with: BasicAuthorization(authToken: "token")))
             .requestMatches(
                 headers: ["Authorization": "Basic token"]
@@ -60,7 +60,7 @@ struct RequestCachePolicy {
             .reloadRevalidatingCacheData
         ]
     ) func cachePolicy(cachePolicy: URLRequest.CachePolicy) async throws {
-        let endpoint = TestEmptyEndpoint()
+        let endpoint = TestModifiedEndpoint()
             .modify(.cachePolicy(cachePolicy))
 
         let request = try await URLRequest(baseURL: .test, endpoint: endpoint)
@@ -71,7 +71,7 @@ struct RequestCachePolicy {
 struct RequestContentType {
 
     @Test func contentType() async throws {
-        try await TestEmptyEndpoint()
+        try await TestModifiedEndpoint()
             .modify(.contentType("text/html"))
             .requestMatches(
                 headers: ["Content-Type": "text/html"]
@@ -104,14 +104,14 @@ struct RequestcURL {
     }
 
     @Test func curlGET() async throws {
-        let endpoint = TestEmptyEndpoint()
+        let endpoint = TestModifiedEndpoint()
             .modify(.curl())
 
         let request = try await URLRequest(
             baseURL: .test,
             endpoint: endpoint
         )
-        let expectedCurl = "curl -f -X GET --url 'https://www.rickb.com/curlGET()' "
+        let expectedCurl = "curl -f -X GET --url 'https://www.rickb.com/modify-me' "
         #expect(request.curl() == expectedCurl)
     }
 
@@ -199,7 +199,7 @@ struct RequestcURL {
 struct RequestHeader {
 
     @Test func mergeRemoveHeaders() async throws {
-        try await TestEmptyEndpoint()
+        try await TestModifiedEndpoint()
             .modify(.merge(headers: ["pageName": "original", "auth": "123", "remove": "me"]))
             .modify(.merge(headers: ["pageName": "home"]))
             .modify(.merge(headers: ["pageName": "dontChange"], uniquingKeysWith: { a, _ in a }))
@@ -224,7 +224,7 @@ struct RequestHeader {
 struct RequestTimeout {
 
     @Test func timeout() async throws {
-        let endpoint = TestEmptyEndpoint()
+        let endpoint = TestModifiedEndpoint()
             .modify(.timeout(120))
 
         let urlRequest = try await  URLRequest(baseURL: .test, endpoint: endpoint)
@@ -236,7 +236,7 @@ struct RequestTimeout {
 struct RequestURL {
 
     @Test func map() async throws {
-        let endpoint = TestEmptyEndpoint()
+        let endpoint = TestModifiedEndpoint()
             .modify(.map { _ in
                 URL(string: "https://example.com")!
             })
@@ -247,7 +247,7 @@ struct RequestURL {
     }
 
     @Test func mapURL() async throws {
-        let endpoint = TestEmptyEndpoint()
+        let endpoint = TestModifiedEndpoint()
             .modify(.mapURLComponents(host: "example.com", path: "/test"))
 
         let urlRequest = try await URLRequest(baseURL: .test, endpoint: endpoint)
@@ -256,7 +256,7 @@ struct RequestURL {
     }
 
     @Test func testMapURLComponents() async throws {
-        let endpoint = TestEmptyEndpoint()
+        let endpoint = TestModifiedEndpoint()
             .modify(.map { _ in
                 URLComponents(string: "https://example.com/test")!
             })
@@ -270,10 +270,10 @@ struct RequestURL {
 struct ResponsePrint {
 
     @Test func printResponse() async throws {
-        let endpoint = TestEmptyEndpoint()
+        let endpoint = TestModifiedEndpoint()
             .modify(.printResponse())
 
-        let dataProvider = TestDataProvider()
+        let dataProvider = TestClient()
 
         try await dataProvider.request(endpoint)
     }
@@ -287,8 +287,8 @@ struct ResponseValidation {
             let errorCode: Int
         }
 
-        let endpoint = TestEmptyEndpoint().modify(.validate(error: CustomError.self, requireHttpError: requireHttpError))
-        var dataProvider = TestDataProvider(body: #"{"errorCode": 1}"#, statusCode: requireHttpError ? 400 : 200)
+        let endpoint = TestModifiedEndpoint().modify(.validate(error: CustomError.self, requireHttpError: requireHttpError))
+        var dataProvider = TestClient(body: #"{"errorCode": 1}"#, statusCode: requireHttpError ? 400 : 200)
         try await dataProvider.testResponseValidation(endpoint) { (error: CustomError) in
             #expect(error.errorCode == 1)
         }
@@ -311,27 +311,27 @@ struct ResponseValidation {
             }
         }
 
-        let endpoint = TestEmptyEndpoint().modify(.validate(
+        let endpoint = TestModifiedEndpoint().modify(.validate(
             error: CustomStringError.self,
             decoder: CustomStringError.Decoder(),
             requireHttpError: requireHttpError
         ))
-        var dataProvider = TestDataProvider(body: "1", statusCode: requireHttpError ? 400 : 200)
+        var dataProvider = TestClient(body: "1", statusCode: requireHttpError ? 400 : 200)
         try await dataProvider.testResponseValidation(endpoint) { (error: CustomStringError) in
             #expect(error.errorCode == 1)
         }
     }
 
     @Test func validateHTTP() async throws {
-        let endpoint = TestEmptyEndpoint().modify(.validateHTTP())
-        var dataProvider = TestDataProvider(statusCode: 400)
+        let endpoint = TestModifiedEndpoint().modify(.validateHTTP())
+        var dataProvider = TestClient(statusCode: 400)
         try await dataProvider.testResponseValidation(endpoint) { (error: HTTPError) in
             #expect(error.response.httpStatusCode == 400)
         }
     }
 }
 
-extension TestDataProvider {
+extension TestClient {
 
     mutating
     func testResponseValidation<T: Endpoint,U: Error>(
@@ -350,5 +350,10 @@ extension TestDataProvider {
         statusCode = 200
         _ = try await request(endpoint)
     }
+}
+
+private struct TestModifiedEndpoint: Endpoint {
+    typealias Response = Void
+    let route = GET("/modify-me")
 }
 

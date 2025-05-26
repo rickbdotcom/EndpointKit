@@ -36,7 +36,7 @@ public struct HTTPError: LocalizedError {
     /// - Parameter _: The HTTP status code
     /// - Returns: If this is an HTTP error
     public static func isError(_ statusCode: Int) -> Bool {
-        (200..<300).contains(statusCode) == false
+        (200..<400).contains(statusCode) == false
     }
 
     public var responseString: String? {

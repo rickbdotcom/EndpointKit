@@ -7,13 +7,17 @@
 import Foundation
 
 /// Decode response as JSON deserializable Dictionary
-public struct SerializedJSONResponseDecoder<T>: ResponseDecoder {
+public struct JSONSerializationResponseDecoder<T>: ResponseDecoder {
     public typealias Response = T
 
-    public init() { }
+    let options: JSONSerialization.ReadingOptions
+
+    public init(options: JSONSerialization.ReadingOptions = []) {
+        self.options = options
+    }
 
     public func decode(response: URLResponse, data: Data) throws -> Response {
-        guard let object = try JSONSerialization.jsonObject(with: data) as? Response else {
+        guard let object = try JSONSerialization.jsonObject(with: data, options: options) as? Response else {
             throw DecodeError.dataResponseDoesntMatch
         }
         return object

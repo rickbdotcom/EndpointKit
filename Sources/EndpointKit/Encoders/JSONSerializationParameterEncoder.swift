@@ -7,10 +7,13 @@
 import Foundation
 
 /// Endpoint parameters are specified as a JSON Encodable Dictionary (application/json)
-public struct SerializedJSONParameterEncoder<T>: RequestEncoder {
+public struct JSONSerializationParameterEncoder<T>: RequestEncoder {
     public typealias Parameters = T
 
-    public init() {
+    let options: JSONSerialization.WritingOptions
+
+    public init(options: JSONSerialization.WritingOptions = []) {
+        self.options = options.union(.sortedKeys)
     }
 
     /// Encode implementation
@@ -20,7 +23,7 @@ public struct SerializedJSONParameterEncoder<T>: RequestEncoder {
         }
         var modifiedRequest = request
         modifiedRequest.setValue(ContentType.json, forHTTPHeaderField: ContentType.header)
-        modifiedRequest.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .sortedKeys)
+        modifiedRequest.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: options)
         return modifiedRequest
     }
 

@@ -141,7 +141,7 @@ struct JSONEncodableParameterEncoderTests {
     }
 }
 
-struct SerializedJSONParameterEncoderTests {
+struct JSONSerializationParameterEncoderTests {
 
     @Test func encode() throws {
         let dictionary: [String: Any] = [
@@ -150,7 +150,7 @@ struct SerializedJSONParameterEncoderTests {
             "isElite": true,
             "miles": 100
         ]
-        let encoder = SerializedJSONParameterEncoder<[String: Any]>()
+        let encoder = JSONSerializationParameterEncoder<[String: Any]>()
         let request = try encoder.encode(dictionary, into: .test)
 
         #expect(request.url == .test)
@@ -164,10 +164,10 @@ struct SerializedJSONParameterEncoderTests {
         ]
 
         do {
-            let encoder = SerializedJSONParameterEncoder<[String: Any]>()
+            let encoder = JSONSerializationParameterEncoder<[String: Any]>()
             _ = try encoder.encode(dictionary, into: .test)
             Issue.record("Should have failed")
-        } catch let error as SerializedJSONParameterEncoder<[String: Any]>.EncodeError {
+        } catch let error as JSONSerializationParameterEncoder<[String: Any]>.EncodeError {
             print(error)
         }
     }

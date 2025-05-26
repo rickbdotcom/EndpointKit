@@ -12,10 +12,9 @@ public struct JSONEncodableParameterEncoder<T: Encodable>: RequestEncoder {
 
     let encoder: JSONEncoder
 
-    public init(encoder: JSONEncoder? = nil) {
-        let sortedEncoder = encoder ?? JSONEncoder()
-        sortedEncoder.outputFormatting.formUnion(.sortedKeys)
-        self.encoder = sortedEncoder
+    public init(encoder: JSONEncoder = JSONEncoder()) {
+        encoder.outputFormatting.formUnion(.sortedKeys)
+        self.encoder = encoder
     }
 
     /// Encode implementation

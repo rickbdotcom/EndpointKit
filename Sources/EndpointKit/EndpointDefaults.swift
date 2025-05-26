@@ -1,5 +1,5 @@
 //
-//  APIEndpointDefault.swift
+//  EndpointDefault.swift
 //  
 //
 //  Created by Burgess, Rick on 8/25/23.

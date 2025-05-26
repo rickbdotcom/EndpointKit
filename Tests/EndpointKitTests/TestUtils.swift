@@ -72,7 +72,7 @@ extension Endpoint where Parameters: Codable & Equatable {
     }
 }
 
-struct TestDataProvider: URLRequestDataProvider {
+struct TestClient: EndpointClient, URLRequestDataProvider {
     var body: Data
     var statusCode: Int
 
@@ -101,15 +101,6 @@ struct TestDataProvider: URLRequestDataProvider {
             )
         )
         return (body, response)
-    }
-}
-
-struct TestEmptyEndpoint: Endpoint {
-    typealias Response = Void
-    let route: Route
-
-    init(_ method: HTTPMethod = .get, path: String = #function) {
-        route = .init(method, path)
     }
 }
 
