@@ -10,9 +10,41 @@ import Foundation
 @testable import EndpointKit
 
 struct AnyRequestEncoderTests {
+
+    @Test func encoder() async throws {
+        let randomURL = try #require(URL(string: "https://\(UUID().uuidString)"))
+
+        let encoder = AnyRequestEncoder<Void> { _, _ in
+            URLRequest(url: randomURL)
+        }
+        let request = try await encoder.encode((), into: .test)
+        #expect(request.url == randomURL)
+    }
+
+    @Test func encoderError() async throws {
+        struct EncodeError: Error {
+        }
+        let encoder = AnyRequestEncoder<Void> { _, _ in
+            throw EncodeError()
+        }
+        do {
+            _ = try await encoder.encode((), into: .test)
+            Issue.record("Should have failed")
+        } catch _ as EncodeError {
+        }
+    }
 }
 
 struct DataParameterEncoderTests {
+
+    @Test func encoder() throws {
+        let data = Data(repeating: 6, count: 3)
+        let encoder = DataParameterEncoder()
+        let request = try encoder.encode(data, into: .test)
+        #expect(request.url == .test)
+        #expect(request.value(forHTTPHeaderField: "Content-type") == "application/octet-stream")
+        #expect(request.httpBody == data)
+    }
 }
 
 struct EmptyParameterEncoderTests {
@@ -137,8 +169,6 @@ struct SerializedJSONParameterEncoderTests {
             case .invalidJSON:
                 break
             }
-        } catch {
-            Issue.record("Unexpected error \(error)")
         }
     }
 }

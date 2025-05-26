@@ -7,16 +7,14 @@
 
 import Foundation
 
-public struct AnyRequestEncoder<T>: RequestEncoder {
-    public typealias Parameters = T
-
+public struct AnyRequestEncoder<Parameters>: RequestEncoder {
     let encode: @Sendable (Parameters, URLRequest) async throws -> URLRequest
 
-    public init(encode: @Sendable @escaping (T, URLRequest) async throws -> URLRequest) {
+    public init(encode: @Sendable @escaping (Parameters, URLRequest) async throws -> URLRequest) {
         self.encode = encode
     }
 
-    public func encode(_ parameters: T, into request: URLRequest) async throws -> URLRequest {
+    public func encode(_ parameters: Parameters, into request: URLRequest) async throws -> URLRequest {
         try await encode(parameters, request)
     }
 }

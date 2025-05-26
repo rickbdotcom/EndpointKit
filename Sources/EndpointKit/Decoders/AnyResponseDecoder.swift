@@ -6,12 +6,10 @@
 
 import Foundation
 
-public struct AnyResponseDecoder<T>: ResponseDecoder {
-    public typealias Response = T
+public struct AnyResponseDecoder<Response>: ResponseDecoder {
+    let decode: @Sendable (URLResponse, Data) async throws -> Response
 
-    let decode: @Sendable (URLResponse, Data) async throws -> T
-
-    public init(decode: @Sendable @escaping (URLResponse, Data) async throws -> T) {
+    public init(decode: @Sendable @escaping (URLResponse, Data) async throws -> Response) {
         self.decode = decode
     }
 
