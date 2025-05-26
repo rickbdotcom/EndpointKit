@@ -13,7 +13,7 @@ public struct StringResponseDecoder: ResponseDecoder {
     let encoding: String.Encoding
     let prettyifyJSON: Bool
 
-    public init(encoding: String.Encoding = .utf8, prettyifyJSON: Bool = true) {
+    public init(encoding: String.Encoding = .utf8, prettyifyJSON: Bool = false) {
         self.encoding = encoding
         self.prettyifyJSON = prettyifyJSON
     }
@@ -24,7 +24,7 @@ public struct StringResponseDecoder: ResponseDecoder {
                let jsonObject = try? JSONSerialization.jsonObject(with: data, options: []),
                let string = try? String(
                 data: JSONSerialization.data(withJSONObject: jsonObject, options: [.prettyPrinted]),
-                encoding: .utf8
+                encoding: encoding
                ) {
                 return string
             }

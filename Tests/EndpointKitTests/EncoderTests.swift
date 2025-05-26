@@ -11,17 +11,19 @@ import Foundation
 
 struct AnyRequestEncoderTests {
 
-    @Test func encoder() async throws {
+    @Test func encode() async throws {
         let randomURL = try #require(URL(string: "https://\(UUID().uuidString)"))
 
-        let encoder = AnyRequestEncoder<Void> { _, _ in
-            URLRequest(url: randomURL)
+        let encoder = AnyRequestEncoder<Int> { parameters, request in
+            #expect(parameters == 1)
+            #expect(request == .test)
+            return URLRequest(url: randomURL)
         }
-        let request = try await encoder.encode((), into: .test)
+        let request = try await encoder.encode(1, into: .test)
         #expect(request.url == randomURL)
     }
 
-    @Test func encoderError() async throws {
+    @Test func encodeError() async throws {
         struct EncodeError: Error {
         }
         let encoder = AnyRequestEncoder<Void> { _, _ in
@@ -30,14 +32,15 @@ struct AnyRequestEncoderTests {
         do {
             _ = try await encoder.encode((), into: .test)
             Issue.record("Should have failed")
-        } catch _ as EncodeError {
+        } catch let error as EncodeError {
+            print(error)
         }
     }
 }
 
 struct DataParameterEncoderTests {
 
-    @Test func encoder() throws {
+    @Test func encode() throws {
         let data = Data(repeating: 6, count: 3)
         let encoder = DataParameterEncoder()
         let request = try encoder.encode(data, into: .test)
@@ -49,7 +52,7 @@ struct DataParameterEncoderTests {
 
 struct EmptyParameterEncoderTests {
 
-    @Test func encoder() throws {
+    @Test func encode() throws {
         let encoder = EmptyParameterEncoder()
         let request = URLRequest.test
         let newRequest = try encoder.encode((), into: .test)
@@ -165,10 +168,7 @@ struct SerializedJSONParameterEncoderTests {
             _ = try encoder.encode(dictionary, into: .test)
             Issue.record("Should have failed")
         } catch let error as SerializedJSONParameterEncoder<[String: Any]>.EncodeError {
-            switch error {
-            case .invalidJSON:
-                break
-            }
+            print(error)
         }
     }
 }
