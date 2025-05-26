@@ -7,10 +7,10 @@
 
 import Foundation
 
-enum ContentType {
-    static let header = "Content-Type"
+public enum ContentType {
+    public static let header = "Content-Type"
 
-    static let json = "application/json"
-    static let octetStream = "application/octet-stream"
-    static let formEncoded = "application/x-www-form-urlencoded"
+    public static let json = "application/json"
+    public static let octetStream = "application/octet-stream"
+    public static let formEncoded = "application/x-www-form-urlencoded"
 }

@@ -15,9 +15,16 @@ public struct SerializedJSONParameterEncoder<T>: RequestEncoder {
 
     /// Encode implementation
     public func encode(_ parameters: Parameters, into request: URLRequest) throws -> URLRequest {
+        guard JSONSerialization.isValidJSONObject(parameters) else {
+            throw EncodeError.invalidJSON
+        }
         var modifiedRequest = request
         modifiedRequest.setValue(ContentType.json, forHTTPHeaderField: ContentType.header)
-        modifiedRequest.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+        modifiedRequest.httpBody = try JSONSerialization.data(withJSONObject: parameters, options: .sortedKeys)
         return modifiedRequest
+    }
+
+    enum EncodeError: Error {
+        case invalidJSON
     }
 }

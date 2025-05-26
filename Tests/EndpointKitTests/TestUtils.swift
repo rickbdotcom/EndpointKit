@@ -9,7 +9,17 @@ import Foundation
 import Testing
 @testable import EndpointKit
 
-let testBaseURL = URL(string: "https://www.rickb.com")!
+extension URL {
+    static let test = URL(string: "https://www.rickb.com")!
+}
+
+extension URLRequest {
+    static let test = URLRequest(url: .test)
+}
+
+extension Date {
+    static let test = Date(timeIntervalSince1970: 0)
+}
 
 extension Endpoint {
     func requestMatches(
@@ -17,7 +27,7 @@ extension Endpoint {
         body: String? = nil,
         headers: [String: String]? = nil
     ) async throws {
-        let request = try await URLRequest(baseURL: testBaseURL, endpoint: self)
+        let request = try await URLRequest(baseURL: .test, endpoint: self)
 
         if let url {
             let requestURL = try #require(URL(string: url))
@@ -25,8 +35,7 @@ extension Endpoint {
         }
 
         if let body {
-            let requestBody = try #require(request.httpBody.flatMap { String(data: $0, encoding: .utf8) })
-            #expect(body == requestBody)
+            #expect(body == request.body)
         }
 
         if let headers {
@@ -45,7 +54,7 @@ extension Endpoint where Parameters: Codable & Equatable {
         headers: [String: String]? = nil,
         decoder: JSONDecoder = JSONDecoder()
     ) async throws {
-        let request = try await URLRequest(baseURL: testBaseURL, endpoint: self)
+        let request = try await URLRequest(baseURL: .test, endpoint: self)
         if let url {
             let requestURL = try #require(URL(string: url))
             #expect(request.url == requestURL)
@@ -78,7 +87,7 @@ struct TestDataProvider: URLRequestDataProvider {
     }
 
     func request<T: Endpoint>(_ endpoint: T) async throws -> T.Response {
-        try await request(baseURL: testBaseURL, endpoint: endpoint)
+        try await request(baseURL: .test, endpoint: endpoint)
     }
 
     func data(for request: URLRequest) async throws -> (Data, URLResponse) {
@@ -101,5 +110,17 @@ struct TestEmptyEndpoint: Endpoint {
 
     init(_ method: HTTPMethod = .get, path: String = #function) {
         route = .init(method, path)
+    }
+}
+
+extension URLRequest {
+
+    var body: String? {
+        if let httpBody,
+           let string = String(data: httpBody, encoding: .utf8) {
+            string
+        } else {
+            nil
+        }
     }
 }

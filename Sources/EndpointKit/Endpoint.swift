@@ -32,3 +32,21 @@ public extension Endpoint where Parameters == Void {
 public protocol APIEndpointClient {
     func request<T: Endpoint>(_ endpoint: T) async throws -> T.Response
 }
+
+public extension URLRequest {
+
+    init<T: Endpoint>(
+        baseURL: URL,
+        endpoint: T,
+        cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy,
+        timeoutInterval: TimeInterval = 60.0
+    ) async throws {
+        self = try await URLRequest(
+            baseURL: baseURL,
+            endpoint: endpoint.route,
+            cachePolicy: cachePolicy,
+            timeoutInterval: timeoutInterval
+        )
+        .encode(parameters: endpoint.parameters, with: endpoint.requestEncoder)
+    }
+}

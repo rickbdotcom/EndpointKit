@@ -12,3 +12,9 @@ public protocol RequestEncoder<Parameters>: Sendable {
 
     func encode(_ parameters: Parameters, into request: URLRequest) async throws -> URLRequest
 }
+
+public extension URLRequest {
+    func encode<T>(parameters: T, with encoder: any RequestEncoder<T>) async throws -> URLRequest {
+        try await encoder.encode(parameters, into: self)
+    }
+}

@@ -39,3 +39,17 @@ public func DELETE(_ path: String) -> Route {
 public func HEAD(_ path: String) -> Route {
     .init(.head, path)
 }
+
+public extension URLRequest {
+    init(
+        baseURL: URL,
+        endpoint: Route,
+        cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy,
+        timeoutInterval: TimeInterval = 60.0
+    ) {
+        let url = baseURL.appendingPathComponent(endpoint.path)
+        var request = URLRequest(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval)
+        request.httpMethod = endpoint.method.rawValue
+        self = request
+    }
+}

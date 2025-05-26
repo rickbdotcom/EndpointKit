@@ -55,11 +55,17 @@ extension URLRequest {
                         headers[parts[0]] = parts[1]
                     }
                 }
-            case "--data", "--data-raw", "--data-binary":
+            case "--data", "--data-raw":
                 i += 1
                 if i < tokens.count {
                     body = tokens[i].data(using: .utf8)
                 }
+/*            case "--data-binary": // assume shell hex escaping
+                i += 1
+                if i < tokens.count {
+                    let binaryString = tokens[i]
+                    guard binaryString(0..<1)
+                }*/
             default:
                 if token.starts(with: "http://") || token.starts(with: "https://") {
                     url = URL(string: token)
@@ -95,9 +101,9 @@ extension URLRequest {
                 data = "--data '\(escaped)'"
             } else { // Binary data
                 let hexString = httpBody
-                    .map { String(format: "%02X", $0) }
+                    .map { String(format: "\\x%02X", $0) }
                     .joined()
-                data = #"--data "$(echo '\#(hexString)' | xxd -p -r)""#
+                data = "--data-binary $'\(hexString)'"
             }
         }
 
