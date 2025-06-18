@@ -223,8 +223,8 @@ struct URLParameterEncoderTests {
         #expect(request.httpBody == nil)
     }
 
-    @Test func encodeArrayBrackets() async throws {
-        let encoder = URLParameterEncoder<ArrayParameters>(arrayEncoding: .duplicateKeyWithBrackets)
+    @Test func encodeArrayWithBrackets() async throws {
+        let encoder = URLParameterEncoder<ArrayParameters>(arrayEncoding: .brackets)
 
         let request = try encoder.encode(
             ArrayParameters(strings: ["b", "a"], ints: [3, 2]),

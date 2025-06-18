@@ -7,8 +7,8 @@
 import Foundation
 
 public enum URLParameterArrayEncoding: Sendable {
-    case duplicateKeys
-    case duplicateKeyWithBrackets
+    case noBrackets
+    case brackets
 }
 
 /// Encodes parameters into URL query, i.e. ?item=1&next=2
@@ -20,7 +20,7 @@ public struct URLParameterEncoder<T: Encodable>: RequestEncoder {
 
     public init(
         encoder: JSONEncoder = JSONEncoder(),
-        arrayEncoding: URLParameterArrayEncoding = .duplicateKeys
+        arrayEncoding: URLParameterArrayEncoding = .noBrackets
     ) {
         self.encoder = encoder
         self.arrayEncoding = arrayEncoding
@@ -73,11 +73,11 @@ extension Dictionary where Key == String, Value == Any {
         flatMap { key, value in
             if let array = value as? [Any] {
                 switch arrayEncoding {
-                case .duplicateKeys:
+                case .noBrackets:
                     array.map {
                         (key, "\($0)")
                     }
-                case .duplicateKeyWithBrackets:
+                case .brackets:
                     array.map {
                         ("\(key)[]", "\($0)")
                     }

@@ -15,7 +15,7 @@ public struct FormParameterEncoder<T: Encodable>: RequestEncoder {
 
     public init(
         encoder: JSONEncoder = JSONEncoder(),
-        arrayEncoding: URLParameterArrayEncoding = .duplicateKeys
+        arrayEncoding: URLParameterArrayEncoding = .noBrackets
     ) {
         self.encoder = encoder
         self.arrayEncoding = arrayEncoding
