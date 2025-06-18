@@ -182,6 +182,11 @@ struct URLParameterEncoderTests {
         let date: Date?
     }
 
+    struct ArrayParameters: Encodable {
+        let strings: [String]
+        let ints: [Int]
+    }
+
     @Test func defaultEncode() throws {
         let encoder = URLParameterEncoder<Parameters>()
         let request = try encoder.encode(
@@ -204,6 +209,28 @@ struct URLParameterEncoderTests {
             into: .test
         )
         #expect(request.url?.absoluteString == "https://www.rickb.com?date=1970-01-01T00:00:00Z&is_elite=1&password=password&user_name=rickb")
+        #expect(request.httpBody == nil)
+    }
+
+    @Test func encodeArray() async throws {
+        let encoder = URLParameterEncoder<ArrayParameters>()
+
+        let request = try encoder.encode(
+            ArrayParameters(strings: ["b", "a"], ints: [3, 2]),
+            into: .test
+        )
+        #expect(request.url?.absoluteString == "https://www.rickb.com?ints=3&ints=2&strings=b&strings=a")
+        #expect(request.httpBody == nil)
+    }
+
+    @Test func encodeArrayBrackets() async throws {
+        let encoder = URLParameterEncoder<ArrayParameters>(arrayEncoding: .duplicateKeyWithBrackets)
+
+        let request = try encoder.encode(
+            ArrayParameters(strings: ["b", "a"], ints: [3, 2]),
+            into: .test
+        )
+        #expect(request.url?.absoluteString == "https://www.rickb.com?ints%5B%5D=3&ints%5B%5D=2&strings%5B%5D=b&strings%5B%5D=a")
         #expect(request.httpBody == nil)
     }
 }

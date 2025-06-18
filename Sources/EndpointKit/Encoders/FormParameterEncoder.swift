@@ -11,16 +11,28 @@ public struct FormParameterEncoder<T: Encodable>: RequestEncoder {
     public typealias Parameters = T
 
     let encoder: JSONEncoder
+    let arrayEncoding: URLParameterArrayEncoding
 
-    public init(encoder: JSONEncoder = JSONEncoder()) {
+    public init(
+        encoder: JSONEncoder = JSONEncoder(),
+        arrayEncoding: URLParameterArrayEncoding = .duplicateKeys
+    ) {
         self.encoder = encoder
+        self.arrayEncoding = arrayEncoding
     }
 
     /// Encode implementation
     public func encode(_ parameters: Parameters, into request: URLRequest) throws -> URLRequest {
         var modifiedRequest = request
         modifiedRequest.setValue(ContentType.formEncoded, forHTTPHeaderField: ContentType.header)
-        modifiedRequest.httpBody = (try encoder.encodeToQuery(parameters)).map { $0.toString }.joined(separator: "&").data(using: .utf8)
+        modifiedRequest.httpBody = (
+            try encoder.encodeToQuery(parameters, arrayEncoding: arrayEncoding)
+        ).map {
+            $0.toString
+        }
+        .joined(separator: "&")
+        .data(using: .utf8)
+        
         return modifiedRequest
     }
 }

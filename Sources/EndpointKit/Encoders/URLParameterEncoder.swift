@@ -6,22 +6,32 @@
 
 import Foundation
 
+public enum URLParameterArrayEncoding: Sendable {
+    case duplicateKeys
+    case duplicateKeyWithBrackets
+}
+
 /// Encodes parameters into URL query, i.e. ?item=1&next=2
-/// - Warning: Doesn't support arrays as there is no standard way to encode them. TODO: US1893651
-/// https://medium.com/raml-api/objects-in-query-params-173d2712ce5b
 public struct URLParameterEncoder<T: Encodable>: RequestEncoder {
     public typealias Parameters = T
 
     let encoder: JSONEncoder
+    let arrayEncoding: URLParameterArrayEncoding
 
-    public init(encoder: JSONEncoder = JSONEncoder()) {
+    public init(
+        encoder: JSONEncoder = JSONEncoder(),
+        arrayEncoding: URLParameterArrayEncoding = .duplicateKeys
+    ) {
         self.encoder = encoder
+        self.arrayEncoding = arrayEncoding
     }
 
     /// Encode implementation
     public func encode(_ parameters: Parameters, into request: URLRequest) throws -> URLRequest {
         var modifiedRequest = request
-        modifiedRequest.url = try modifiedRequest.url?.addQueryItems(encoder.encodeToQuery(parameters))
+        modifiedRequest.url = try modifiedRequest.url?.addQueryItems(
+            encoder.encodeToQuery(parameters, arrayEncoding: arrayEncoding)
+        )
         return modifiedRequest
     }
 }
@@ -42,13 +52,16 @@ extension JSONEncoder {
         try JSONSerialization.jsonObject(with: try encode(value), options: [])
     }
 
-    func encodeToQuery<T: Encodable>(_ value: T) throws -> [URLQueryItem] {
-        let dictionary = (try jsonObject(value) as? [String: Any])?.parameters
+    func encodeToQuery<T: Encodable>(
+        _ value: T,
+        arrayEncoding: URLParameterArrayEncoding
+    ) throws -> [URLQueryItem] {
+        let keyValues = (try jsonObject(value) as? [String: Any])?.parameters(arrayEncoding)
         var queryItems = [URLQueryItem]()
-        dictionary?.sorted {
-            $0.key < $1.key
-        }.forEach { key, value in
-            queryItems.append(.init(name: key, value: value))
+        keyValues?.sorted {
+            $0.0 < $1.0
+        }.forEach {
+            queryItems.append(.init(name: $0, value: $1))
         }
         return queryItems
     }
@@ -56,7 +69,22 @@ extension JSONEncoder {
 
 extension Dictionary where Key == String, Value == Any {
 
-    var parameters: [String: String] {  // not handling arrays, add if needed. US1893651
-        mapValues { "\($0)" }
+    func parameters(_ arrayEncoding: URLParameterArrayEncoding) -> [(String, String)] {
+        flatMap { key, value in
+            if let array = value as? [Any] {
+                switch arrayEncoding {
+                case .duplicateKeys:
+                    array.map {
+                        (key, "\($0)")
+                    }
+                case .duplicateKeyWithBrackets:
+                    array.map {
+                        ("\(key)[]", "\($0)")
+                    }
+                }
+            } else {
+                [(key, "\(value)")]
+            }
+        }
     }
 }
