@@ -11,7 +11,7 @@ extension AnyEndpointModifier {
     /// Create a modifier that merges the endpoint's headers
     public static func merge(
         headers: [String : String],
-        uniquingKeysWith combine: @escaping (String, String) -> String = { _, b in b }
+        uniquingKeysWith combine: @escaping (String, String) -> String = { $1 }
     ) -> Self {
         RequestModifier {
             $0.merge(headers: headers, uniquingKeysWith: combine)
@@ -30,7 +30,7 @@ extension RequestEncoder {
     /// Modify parameter encoder to merge the headers
     public func merge(
         headers: [String: String],
-        uniquingKeysWith combine: @escaping (String, String) -> String = { _, b in b }
+        uniquingKeysWith combine: @escaping (String, String) -> String = { $1 }
     ) -> any RequestEncoder<Parameters> {
         AnyRequestEncoder { parameters, request in
             try await encode(parameters, into: request).merge(
@@ -51,7 +51,7 @@ extension RequestEncoder {
 extension URLRequest {
     public func merge(
         headers: [String: String],
-        uniquingKeysWith combine: @escaping (String, String) -> String = { _, b in b }
+        uniquingKeysWith combine: @escaping (String, String) -> String = { $1 }
     ) -> URLRequest {
         var request = self
         headers.forEach {
