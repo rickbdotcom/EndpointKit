@@ -25,6 +25,12 @@ public extension Endpoint where Parameters == Data {
     }
 }
 
+public extension Endpoint where Parameters == JSONType {
+    var requestEncoder: any RequestEncoder<Parameters> {
+        JSONSerializationParameterEncoder()
+    }
+}
+
 public extension Endpoint where Response == Void {
     var responseDecoder: any ResponseDecoder<Response> {
         EmptyResponseDecoder().validateHTTP()
@@ -46,5 +52,11 @@ public extension Endpoint where Response == Data {
 public extension Endpoint where Response == String {
     var responseDecoder: any ResponseDecoder<Response> {
         StringResponseDecoder().validateHTTP()
+    }
+}
+
+public extension Endpoint where Response: JSONType {
+    var responseDecoder: any ResponseDecoder<Response> {
+        JSONSerializationResponseDecoder().validateHTTP()
     }
 }

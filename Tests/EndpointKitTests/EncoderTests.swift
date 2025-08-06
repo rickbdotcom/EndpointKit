@@ -233,4 +233,15 @@ struct URLParameterEncoderTests {
         #expect(request.url?.absoluteString == "https://www.rickb.com?ints%5B%5D=3&ints%5B%5D=2&strings%5B%5D=b&strings%5B%5D=a")
         #expect(request.httpBody == nil)
     }
+
+    @Test func encodeArrayWithCommas() async throws {
+        let encoder = URLParameterEncoder<ArrayParameters>(arrayEncoding: .commaSeparated)
+
+        let request = try encoder.encode(
+            ArrayParameters(strings: ["b", "a"], ints: [3, 2]),
+            into: .test
+        )
+        #expect(request.url?.absoluteString == "https://www.rickb.com?ints=3,2&strings=b,a")
+        #expect(request.httpBody == nil)
+    }
 }

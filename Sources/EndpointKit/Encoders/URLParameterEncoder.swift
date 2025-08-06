@@ -9,6 +9,7 @@ import Foundation
 public enum URLParameterArrayEncoding: Sendable {
     case noBrackets
     case brackets
+    case commaSeparated
 }
 
 /// Encodes parameters into URL query, i.e. ?item=1&next=2
@@ -81,6 +82,8 @@ extension Dictionary where Key == String, Value == Any {
                     array.map {
                         ("\(key)[]", "\($0)")
                     }
+                case .commaSeparated:
+                    [(key, array.map { "\($0)" }.joined(separator: ","))]
                 }
             } else {
                 [(key, "\(value)")]
