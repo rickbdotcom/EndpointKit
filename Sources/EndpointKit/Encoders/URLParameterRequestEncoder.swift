@@ -13,7 +13,7 @@ public enum URLParameterArrayEncoding: Sendable {
 }
 
 /// Encodes parameters into URL query, i.e. ?item=1&next=2
-public struct URLRequestEncoder<T: Encodable>: RequestEncoder {
+public struct URLParameterRequestEncoder<T: Encodable>: RequestEncoder {
     public typealias Parameters = T
 
     let encoder: JSONEncoder

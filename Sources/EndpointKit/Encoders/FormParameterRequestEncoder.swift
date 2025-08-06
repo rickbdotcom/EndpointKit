@@ -7,7 +7,7 @@
 import Foundation
 
 /// Encode parameters into HTTP body using form encoding (x-www-form-urlencoded)
-public struct FormRequestEncoder<T: Encodable>: RequestEncoder {
+public struct FormParameterRequestEncoder<T: Encodable>: RequestEncoder {
     public typealias Parameters = T
 
     let encoder: JSONEncoder

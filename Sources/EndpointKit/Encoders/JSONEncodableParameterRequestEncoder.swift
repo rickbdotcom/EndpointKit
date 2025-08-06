@@ -7,7 +7,7 @@
 import Foundation
 
 /// Encodes parameter into body as JSON (application/json)
-public struct JSONEncodableRequestEncoder<T: Encodable>: RequestEncoder {
+public struct JSONEncodableParameterRequestEncoder<T: Encodable>: RequestEncoder {
     public typealias Parameters = T
 
     let encoder: JSONEncoder

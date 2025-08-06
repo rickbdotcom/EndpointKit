@@ -9,25 +9,25 @@ import Foundation
 
 public extension Endpoint where Parameters == Void {
     var requestEncoder: any RequestEncoder<Parameters> {
-        EmptyRequestEncoder()
+        EmptyParameterRequestEncoder()
     }
 }
 
 public extension Endpoint where Parameters: Encodable {
     var requestEncoder: any RequestEncoder<Parameters> {
-        route.method == .get ? URLRequestEncoder() : JSONEncodableRequestEncoder()
+        route.method == .get ? URLParameterRequestEncoder() : JSONEncodableParameterRequestEncoder()
     }
 }
 
 public extension Endpoint where Parameters == Data {
     var requestEncoder: any RequestEncoder<Parameters> {
-        DataRequestEncoder()
+        DataParameterRequestEncoder()
     }
 }
 
 public extension Endpoint where Parameters: JSONType {
     var requestEncoder: any RequestEncoder<Parameters> {
-        JSONSerializationRequestEncoder()
+        JSONSerializationParameterRequestEncoder()
     }
 }
 
