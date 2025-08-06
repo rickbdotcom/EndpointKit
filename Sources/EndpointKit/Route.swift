@@ -47,7 +47,11 @@ public extension URLRequest {
         cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy,
         timeoutInterval: TimeInterval = 60.0
     ) {
-        let url = baseURL.appendingPathComponent(endpoint.path)
+        let url = if endpoint.path.isEmpty == false {
+            baseURL.appendingPathComponent(endpoint.path)
+        } else {
+            baseURL
+        }
         var request = URLRequest(url: url, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval)
         request.httpMethod = endpoint.method.rawValue
         self = request
