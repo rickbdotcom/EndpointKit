@@ -1,5 +1,5 @@
 //
-//  FormParameterEncoder.swift
+//  FormRequestEncoder.swift
 //
 //  Created by Richard Burgess on 6/13/2023
 //
@@ -7,7 +7,7 @@
 import Foundation
 
 /// Encode parameters into HTTP body using form encoding (x-www-form-urlencoded)
-public struct FormParameterEncoder<T: Encodable>: RequestEncoder {
+public struct FormRequestEncoder<T: Encodable>: RequestEncoder {
     public typealias Parameters = T
 
     let encoder: JSONEncoder

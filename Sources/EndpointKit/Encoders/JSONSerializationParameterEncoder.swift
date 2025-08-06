@@ -1,5 +1,5 @@
 //
-//  SerializedJSONParameterEncoder.swift
+//  SerializedJSONRequestEncoder.swift
 //
 //  Created by Richard Burgess on 6/13/2023
 //
@@ -7,7 +7,7 @@
 import Foundation
 
 /// Endpoint parameters are specified as a JSON Encodable Dictionary (application/json)
-public struct JSONSerializationParameterEncoder<T>: RequestEncoder {
+public struct JSONSerializationRequestEncoder<T>: RequestEncoder {
     public typealias Parameters = T
 
     let options: JSONSerialization.WritingOptions

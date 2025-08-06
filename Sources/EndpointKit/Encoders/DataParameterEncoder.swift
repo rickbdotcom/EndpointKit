@@ -1,5 +1,5 @@
 //
-//  DataParameterEncoder.swift
+//  DataRequestEncoder.swift
 //
 //  Created by Richard Burgess on 6/13/2023
 //
@@ -8,7 +8,7 @@ import Foundation
 
 /// For use when Endpoint parameter is Data.
 /// Raw data is put directly into HTTP body with no encoding
-public struct DataParameterEncoder: RequestEncoder {
+public struct DataRequestEncoder: RequestEncoder {
     public typealias Parameters = Data
 
     public init() {

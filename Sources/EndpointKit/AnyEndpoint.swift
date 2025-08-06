@@ -18,12 +18,12 @@ public struct AnyEndpoint<Parameters: Sendable, Response: Sendable>: Endpoint {
     public init(
         parameters: Parameters,
         route: Route,
-        parameterEncoder: any RequestEncoder<Parameters>,
+        RequestEncoder: any RequestEncoder<Parameters>,
         responseDecoder: any ResponseDecoder<Response>
     ) {
         self.parameters = parameters
         self.route = route
-        self.requestEncoder = parameterEncoder
+        self.requestEncoder = RequestEncoder
         self.responseDecoder = responseDecoder
     }
 

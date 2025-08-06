@@ -1,5 +1,5 @@
 //
-//  URLParameterEncoder.swift
+//  URLRequestEncoder.swift
 //
 //  Created by Richard Burgess on 6/13/2023
 //
@@ -13,7 +13,7 @@ public enum URLParameterArrayEncoding: Sendable {
 }
 
 /// Encodes parameters into URL query, i.e. ?item=1&next=2
-public struct URLParameterEncoder<T: Encodable>: RequestEncoder {
+public struct URLRequestEncoder<T: Encodable>: RequestEncoder {
     public typealias Parameters = T
 
     let encoder: JSONEncoder

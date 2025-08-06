@@ -1,5 +1,5 @@
 //
-//  JSONEncodableParameterEncoder.swift
+//  JSONEncodableRequestEncoder.swift
 //
 //  Created by Richard Burgess on 6/13/2023
 //
@@ -7,7 +7,7 @@
 import Foundation
 
 /// Encodes parameter into body as JSON (application/json)
-public struct JSONEncodableParameterEncoder<T: Encodable>: RequestEncoder {
+public struct JSONEncodableRequestEncoder<T: Encodable>: RequestEncoder {
     public typealias Parameters = T
 
     let encoder: JSONEncoder

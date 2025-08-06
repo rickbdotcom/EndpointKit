@@ -38,11 +38,11 @@ struct AnyRequestEncoderTests {
     }
 }
 
-struct DataParameterEncoderTests {
+struct DataRequestEncoderTests {
 
     @Test func encode() throws {
         let data = Data(repeating: 6, count: 3)
-        let encoder = DataParameterEncoder()
+        let encoder = DataRequestEncoder()
         let request = try encoder.encode(data, into: .test)
         #expect(request.url == .test)
         #expect(request.value(forHTTPHeaderField: "Content-type") == "application/octet-stream")
@@ -50,10 +50,10 @@ struct DataParameterEncoderTests {
     }
 }
 
-struct EmptyParameterEncoderTests {
+struct EmptyRequestEncoderTests {
 
     @Test func encode() throws {
-        let encoder = EmptyParameterEncoder()
+        let encoder = EmptyRequestEncoder()
         let request = URLRequest.test
         let newRequest = try encoder.encode((), into: .test)
         #expect(request.url == newRequest.url)
@@ -65,7 +65,7 @@ struct EmptyParameterEncoderTests {
     }
 }
 
-struct FormParameterEncoderTests {
+struct FormRequestEncoderTests {
 
     struct Parameters: Encodable {
         let userName: String
@@ -76,7 +76,7 @@ struct FormParameterEncoderTests {
     }
 
     @Test func defaultEncoder() throws {
-        let encoder = FormParameterEncoder<Parameters>()
+        let encoder = FormRequestEncoder<Parameters>()
         let request = try encoder.encode(
             Parameters(userName: "rickb", password: "password", isElite: true, miles: 100, date: nil),
             into: .test
@@ -91,7 +91,7 @@ struct FormParameterEncoderTests {
         jsonEncoder.keyEncodingStrategy = .convertToSnakeCase
         jsonEncoder.dateEncodingStrategy = .iso8601
 
-        let encoder = FormParameterEncoder<Parameters>(encoder: jsonEncoder)
+        let encoder = FormRequestEncoder<Parameters>(encoder: jsonEncoder)
         let request = try encoder.encode(
             Parameters(userName: "rickb", password: "password", isElite: true, miles: nil, date: .test),
             into: .test
@@ -102,7 +102,7 @@ struct FormParameterEncoderTests {
     }
 }
 
-struct JSONEncodableParameterEncoderTests {
+struct JSONEncodableRequestEncoderTests {
 
     struct Parameters: Encodable {
         let userName: String
@@ -113,7 +113,7 @@ struct JSONEncodableParameterEncoderTests {
     }
 
     @Test func defaultEncode() throws {
-        let encoder = JSONEncodableParameterEncoder<Parameters>()
+        let encoder = JSONEncodableRequestEncoder<Parameters>()
         let request = try encoder.encode(
             Parameters(userName: "rickb", password: "password", isElite: true, miles: 100, date: nil),
             into: URLRequest.test
@@ -129,7 +129,7 @@ struct JSONEncodableParameterEncoderTests {
         jsonEncoder.keyEncodingStrategy = .convertToSnakeCase
         jsonEncoder.dateEncodingStrategy = .iso8601
 
-        let encoder = JSONEncodableParameterEncoder<Parameters>(encoder: jsonEncoder)
+        let encoder = JSONEncodableRequestEncoder<Parameters>(encoder: jsonEncoder)
         let request = try encoder.encode(
             Parameters(userName: "rickb", password: "password", isElite: true, miles: nil, date: .test),
             into: .test
@@ -141,7 +141,7 @@ struct JSONEncodableParameterEncoderTests {
     }
 }
 
-struct JSONSerializationParameterEncoderTests {
+struct JSONSerializationRequestEncoderTests {
 
     @Test func encode() throws {
         let dictionary: [String: Any] = [
@@ -150,7 +150,7 @@ struct JSONSerializationParameterEncoderTests {
             "isElite": true,
             "miles": 100
         ]
-        let encoder = JSONSerializationParameterEncoder<[String: Any]>()
+        let encoder = JSONSerializationRequestEncoder<[String: Any]>()
         let request = try encoder.encode(dictionary, into: .test)
 
         #expect(request.url == .test)
@@ -164,16 +164,16 @@ struct JSONSerializationParameterEncoderTests {
         ]
 
         do {
-            let encoder = JSONSerializationParameterEncoder<[String: Any]>()
+            let encoder = JSONSerializationRequestEncoder<[String: Any]>()
             _ = try encoder.encode(dictionary, into: .test)
             Issue.record("Should have failed")
-        } catch let error as JSONSerializationParameterEncoder<[String: Any]>.EncodeError {
+        } catch let error as JSONSerializationRequestEncoder<[String: Any]>.EncodeError {
             print(error)
         }
     }
 }
 
-struct URLParameterEncoderTests {
+struct URLRequestEncoderTests {
     struct Parameters: Encodable {
         let userName: String
         let password: String
@@ -188,7 +188,7 @@ struct URLParameterEncoderTests {
     }
 
     @Test func defaultEncode() throws {
-        let encoder = URLParameterEncoder<Parameters>()
+        let encoder = URLRequestEncoder<Parameters>()
         let request = try encoder.encode(
             Parameters(userName: "rickb", password: "password", isElite: true, miles: 100, date: nil),
             into: .test
@@ -203,7 +203,7 @@ struct URLParameterEncoderTests {
         jsonEncoder.keyEncodingStrategy = .convertToSnakeCase
         jsonEncoder.dateEncodingStrategy = .iso8601
 
-        let encoder = URLParameterEncoder<Parameters>(encoder: jsonEncoder)
+        let encoder = URLRequestEncoder<Parameters>(encoder: jsonEncoder)
         let request = try encoder.encode(
             Parameters(userName: "rickb", password: "password", isElite: true, miles: nil, date: .test),
             into: .test
@@ -213,7 +213,7 @@ struct URLParameterEncoderTests {
     }
 
     @Test func encodeArray() async throws {
-        let encoder = URLParameterEncoder<ArrayParameters>()
+        let encoder = URLRequestEncoder<ArrayParameters>()
 
         let request = try encoder.encode(
             ArrayParameters(strings: ["b", "a"], ints: [3, 2]),
@@ -224,7 +224,7 @@ struct URLParameterEncoderTests {
     }
 
     @Test func encodeArrayWithBrackets() async throws {
-        let encoder = URLParameterEncoder<ArrayParameters>(arrayEncoding: .brackets)
+        let encoder = URLRequestEncoder<ArrayParameters>(arrayEncoding: .brackets)
 
         let request = try encoder.encode(
             ArrayParameters(strings: ["b", "a"], ints: [3, 2]),
@@ -235,7 +235,7 @@ struct URLParameterEncoderTests {
     }
 
     @Test func encodeArrayWithCommas() async throws {
-        let encoder = URLParameterEncoder<ArrayParameters>(arrayEncoding: .commaSeparated)
+        let encoder = URLRequestEncoder<ArrayParameters>(arrayEncoding: .commaSeparated)
 
         let request = try encoder.encode(
             ArrayParameters(strings: ["b", "a"], ints: [3, 2]),
