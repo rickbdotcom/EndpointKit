@@ -25,7 +25,7 @@ public extension Endpoint where Parameters == Data {
     }
 }
 
-public extension Endpoint where Parameters == JSONType {
+public extension Endpoint where Parameters: JSONType {
     var requestEncoder: any RequestEncoder<Parameters> {
         JSONSerializationParameterEncoder()
     }

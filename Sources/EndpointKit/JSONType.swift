@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol JSONType: Encodable, Sendable {
+public protocol JSONType: Sendable {
 }
 
 extension String: JSONType {
@@ -19,8 +19,8 @@ extension Int: JSONType {
 extension Double: JSONType {
 }
 
-extension Array: JSONType where Element: Encodable {
+extension Array: JSONType where Element: JSONType {
 }
 
-extension Dictionary: JSONType where Key: Encodable, Value: Encodable {
+extension Dictionary: JSONType where Key: JSONType, Value: JSONType {
 }
