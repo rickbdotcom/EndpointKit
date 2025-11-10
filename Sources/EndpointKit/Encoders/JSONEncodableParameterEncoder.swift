@@ -25,3 +25,15 @@ public struct JSONEncodableParameterEncoder<T: Encodable>: RequestEncoder {
         return modifiedRequest
     }
 }
+
+public extension JSONEncoder {
+
+    func snakeCase() -> Self {
+        set(.convertToSnakeCase)
+    }
+
+    func set(_ strategy: JSONEncoder.KeyEncodingStrategy) -> Self {
+        keyEncodingStrategy = strategy
+        return self
+    }
+}

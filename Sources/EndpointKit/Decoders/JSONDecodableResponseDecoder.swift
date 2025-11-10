@@ -20,3 +20,15 @@ public struct JSONDecodableResponseDecoder<T: Decodable>: ResponseDecoder {
         try decoder.decode(T.self, from: data)
     }
 }
+
+public extension JSONDecoder {
+
+    func snakeCase() -> Self {
+        set(.convertFromSnakeCase)
+    }
+
+    func set(_ strategy: JSONDecoder.KeyDecodingStrategy) -> Self {
+        keyDecodingStrategy = strategy
+        return self
+    }
+}
