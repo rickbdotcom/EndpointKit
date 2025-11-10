@@ -20,6 +20,7 @@ extension ResponseDecoder {
 
     public func print() -> any ResponseDecoder<Response> {
         AnyResponseDecoder { response, data in
+            Swift.print(Date.now.formatted(.iso8601))
             Swift.print(response)
             
             if let string = String(data: data, encoding: .utf8) {
