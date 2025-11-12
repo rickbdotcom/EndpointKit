@@ -20,3 +20,108 @@ public extension URLRequestDataProvider {
         return try await endpoint.responseDecoder.decode(response: response, data: data)
     }
 }
+
+public struct AnyURLRequestDataProvider: URLRequestDataProvider {
+    let _data: @Sendable (URLRequest) async throws -> (Data, URLResponse)
+
+    public init(_data: @Sendable @escaping (URLRequest) async throws -> (Data, URLResponse)) {
+        self._data = _data
+    }
+
+    public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        try await _data(request)
+    }
+
+    public static func error(_ error: Error) -> AnyURLRequestDataProvider {
+        AnyURLRequestDataProvider { request in
+            throw error
+        }
+    }
+
+    public static func response(data: Data?, response: URLResponse?) -> AnyURLRequestDataProvider {
+        AnyURLRequestDataProvider { request in
+            if let data, let response {
+                (data, response)
+            } else {
+                throw CancellationError()
+            }
+        }
+    }
+
+    public static func response(
+        data: Data?,
+        statusCode: Int = 200,
+        httpVersion: String? = nil,
+        headerFields: [String : String]? = nil
+    ) -> AnyURLRequestDataProvider {
+        AnyURLRequestDataProvider { request in
+            if let url = request.url,
+               let data,
+               let response = HTTPURLResponse(
+                url: url,
+                statusCode: statusCode,
+                httpVersion: httpVersion,
+                headerFields: headerFields
+            ){
+                (data, response)
+            } else {
+                throw CancellationError()
+            }
+        }
+    }
+
+    public static func response(
+        forResource name: String?,
+        extension ext: String? = nil,
+        bundle: Bundle = .main,
+        statusCode: Int = 200,
+        httpVersion: String? = nil,
+        headerFields: [String : String]? = nil
+    ) -> AnyURLRequestDataProvider {
+
+        AnyURLRequestDataProvider { request in
+            if let url = request.url,
+               let dataURL = bundle.url(forResource: name, withExtension: ext) {
+                let data = try Data(contentsOf: dataURL)
+                if let response = HTTPURLResponse(
+                    url: url,
+                    statusCode: statusCode,
+                    httpVersion: httpVersion,
+                    headerFields: headerFields
+                ) {
+                    return (data, response)
+                }
+            }
+
+            throw CancellationError()
+        }
+    }
+}
+
+
+public struct URLRequestDataProviderCollection: URLRequestDataProvider {
+    public struct ProviderMatch: Sendable {
+        public let provider: URLRequestDataProvider
+        public let handles: @Sendable (URLRequest) -> Bool
+
+        public init(_ provider: URLRequestDataProvider, handles: @Sendable @escaping (URLRequest) -> Bool) {
+            self.provider = provider
+            self.handles = handles
+        }
+    }
+
+    public var matches: [ProviderMatch]
+
+    public init(_ matches: [ProviderMatch]) {
+        self.matches = matches
+    }
+
+    public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        for match in matches {
+            if match.handles(request) {
+                return try await match.provider.data(for: request)
+            }
+        }
+        throw CancellationError()
+    }
+}
