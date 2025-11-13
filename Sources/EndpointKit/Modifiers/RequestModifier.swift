@@ -11,11 +11,20 @@ import Foundation
 /// An endpoint modifier that modifies an endpoint's parameters
 public struct RequestModifier<Parameters, Response>: EndpointModifier {
     public typealias MapEncoder = (any RequestEncoder<Parameters>) -> any RequestEncoder<Parameters>
+    public typealias Encoder = (any RequestEncoder<Parameters>, Parameters, URLRequest) async throws -> URLRequest
     let parameterEncoder: MapEncoder
 
     /// Create parameter modifier from an existing parameter encoder
     public init(_ parameterEncoder: @escaping MapEncoder) {
         self.parameterEncoder = parameterEncoder
+    }
+
+    public init(_ encode: @escaping Encoder) {
+        self.parameterEncoder = { encoder in
+            AnyRequestEncoder { parameters, request in
+                try await encode(encoder, parameters, request)
+            }
+        }
     }
 
     /// Implementation of parameter modifier

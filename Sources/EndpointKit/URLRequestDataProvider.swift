@@ -98,7 +98,6 @@ public struct AnyURLRequestDataProvider: URLRequestDataProvider {
     }
 }
 
-
 public struct URLRequestDataProviderCollection: URLRequestDataProvider {
     public struct ProviderMatch: Sendable {
         public let provider: URLRequestDataProvider

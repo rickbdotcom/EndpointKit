@@ -10,7 +10,9 @@ import Foundation
 extension AnyEndpointModifier {
     /// Creates a modifier that modifies the endpoint's URLRequest timeout
     public static func timeout(_ interval: TimeInterval) -> Self {
-        RequestModifier { $0.timeout(interval) }.any()
+        RequestModifier {
+            $0.timeout(interval)
+        }.any()
     }
 }
 
