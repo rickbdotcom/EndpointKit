@@ -15,13 +15,15 @@ public protocol Endpoint<Parameters, Response>: Sendable {
 
     /// parameters
     var parameters: Parameters { get }
-    /// route field specifies the path, HTTP method, parameter encoding, response decoding, and any required HTTP headers
+    /// route field specifies the path, HTTP method
     var route: Route { get }
 
     /// Specifies how to encode the URLRequest
+    /// NOTE: Default implementations defined (in EndpointDefaults.swift) so you don't have to implement this unless you need different behavior
     var requestEncoder: any RequestEncoder<Parameters> { get }
 
-    // Specifies how to decode the response
+    /// Specifies how to decode the response
+    /// NOTE: Default implementations defined (in EndpointDefaults.swift) so you don't have to implement this unless you need different behavior
     var responseDecoder: any ResponseDecoder<Response> { get }
 }
 
