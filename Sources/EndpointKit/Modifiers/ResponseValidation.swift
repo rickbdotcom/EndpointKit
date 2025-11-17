@@ -83,16 +83,4 @@ extension ResponseDecoder {
             return try await decode(response: response, data: data)
         }
     }
-
-    public func replaceError(
-        _ replace: @escaping (Error) async throws -> Response
-    ) -> any ResponseDecoder<Response> {
-        AnyResponseDecoder { response, data in
-            do {
-                return try await decode(response: response, data: data)
-            } catch {
-                return try await replace(error)
-            }
-        }
-    }
 }
