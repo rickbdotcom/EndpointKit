@@ -35,11 +35,11 @@ extension AnyEndpointModifier {
         }.any()
     }
 
-    public static func mapError(
-        _ mapError: @escaping (Error) -> Error
+    public static func replaceError(
+        _ replace: @escaping (Error) async throws -> Response
     ) -> Self {
         ResponseModifier {
-            $0.mapError(mapError)
+            $0.replaceError(replace)
         }.any()
     }
 }
@@ -84,14 +84,14 @@ extension ResponseDecoder {
         }
     }
 
-    public func mapError(
-        _ mapError: @escaping (Error) -> Error
+    public func replaceError(
+        _ replace: @escaping (Error) async throws -> Response
     ) -> any ResponseDecoder<Response> {
         AnyResponseDecoder { response, data in
             do {
                 return try await decode(response: response, data: data)
             } catch {
-                throw mapError(error)
+                return try await replace(error)
             }
         }
     }
