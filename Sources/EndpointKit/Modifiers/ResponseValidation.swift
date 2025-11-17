@@ -34,6 +34,14 @@ extension AnyEndpointModifier {
             $0.validate(error: error, decoder: decoder, requireHttpError: requireHttpError)
         }.any()
     }
+
+    public static func mapError(
+        _ mapError: @escaping (Error) -> Error
+    ) -> Self {
+        ResponseModifier {
+            $0.mapError(mapError)
+        }.any()
+    }
 }
 
 extension ResponseDecoder {
@@ -73,6 +81,18 @@ extension ResponseDecoder {
                 throw error
             }
             return try await decode(response: response, data: data)
+        }
+    }
+
+    public func mapError(
+        _ mapError: @escaping (Error) -> Error
+    ) -> any ResponseDecoder<Response> {
+        AnyResponseDecoder { response, data in
+            do {
+                return try await decode(response: response, data: data)
+            } catch {
+                throw mapError(error)
+            }
         }
     }
 }
