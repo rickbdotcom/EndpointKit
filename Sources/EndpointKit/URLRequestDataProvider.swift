@@ -110,6 +110,13 @@ public struct URLRequestDataProviderCollection: URLRequestDataProvider {
             self.provider = provider
             self.handles = handles
         }
+
+        public init(_ provider: URLRequestDataProvider, path: String) {
+            self.provider = provider
+            self.handles = {
+                $0.url?.path() == path
+            }
+        }
     }
 
     public var matches: [ProviderMatch]
