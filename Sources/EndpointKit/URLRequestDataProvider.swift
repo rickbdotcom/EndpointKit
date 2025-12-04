@@ -111,7 +111,7 @@ public struct URLRequestDataProviderCollection: URLRequestDataProvider {
             self.handles = handles
         }
 
-        public init(_ provider: URLRequestDataProvider, path: String) {
+        public init(_ provider: URLRequestDataProvider, _ path: String) {
             self.provider = provider
             self.handles = {
                 $0.url?.path() == path
