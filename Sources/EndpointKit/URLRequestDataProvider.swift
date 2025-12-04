@@ -23,22 +23,25 @@ public extension URLRequestDataProvider {
 
 public struct AnyURLRequestDataProvider: URLRequestDataProvider {
     let _data: @Sendable (URLRequest) async throws -> (Data, URLResponse)
-
+    
     public init(_data: @Sendable @escaping (URLRequest) async throws -> (Data, URLResponse)) {
         self._data = _data
     }
-
+    
     public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         try await _data(request)
     }
+}
 
-    public static func error(_ error: Error) -> AnyURLRequestDataProvider {
+public extension URLRequestDataProvider where Self == AnyURLRequestDataProvider {
+
+    static func error(_ error: Error) -> AnyURLRequestDataProvider {
         AnyURLRequestDataProvider { request in
             throw error
         }
     }
 
-    public static func response(data: Data?, response: URLResponse?) -> AnyURLRequestDataProvider {
+    static func response(data: Data?, response: URLResponse?) -> AnyURLRequestDataProvider {
         AnyURLRequestDataProvider { request in
             if let data, let response {
                 (data, response)
@@ -48,7 +51,7 @@ public struct AnyURLRequestDataProvider: URLRequestDataProvider {
         }
     }
 
-    public static func response(
+    static func response(
         data: Data?,
         statusCode: Int = 200,
         httpVersion: String? = nil,
@@ -70,7 +73,7 @@ public struct AnyURLRequestDataProvider: URLRequestDataProvider {
         }
     }
 
-    public static func response(
+    static func response(
         forResource name: String?,
         extension ext: String? = nil,
         bundle: Bundle = .main,
