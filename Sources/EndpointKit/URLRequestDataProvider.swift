@@ -84,6 +84,7 @@ public extension URLRequestDataProvider where Self == AnyURLRequestDataProvider 
 
         AnyURLRequestDataProvider { request in
             if let url = request.url,
+               let name,
                let dataURL = bundle.url(forResource: name, withExtension: ext) {
                 let data = try Data(contentsOf: dataURL)
                 if let response = HTTPURLResponse(
