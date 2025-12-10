@@ -8,7 +8,7 @@
 import Foundation
 
 public protocol URLRequestModifier {
-    func modify(_ request: URLRequest) -> URLRequest 
+    func modify(_ request: URLRequest) async throws -> URLRequest 
 }
 
 public extension AnyEndpointModifier {
