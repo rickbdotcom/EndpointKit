@@ -7,26 +7,6 @@
 
 import Foundation
 
-extension AnyEndpointModifier {
-
-    public static func curl() -> Self {
-        RequestModifier {
-            $0.curl()
-        }.any()
-    }
-}
-
-extension RequestEncoder {
-
-    public func curl() -> any RequestEncoder<Parameters> {
-        AnyRequestEncoder { parameters, request in
-            let request = try await encode(parameters, into: request)
-            print(request.curl())
-            return request
-        }
-    }
-}
-
 extension URLRequest {
 
     public init?(curl: String) {

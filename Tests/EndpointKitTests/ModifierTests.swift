@@ -90,12 +90,9 @@ struct RequestcURL {
             let parameters: Parameters
             let route = POST("curl")
         }
-        let endpoint = TestCurlEndpoint(parameters: .init(name: "rickb"))
-            .modify(.curl())
-        
         let request = try await URLRequest(
             baseURL: .test,
-            endpoint: endpoint
+            endpoint: TestCurlEndpoint(parameters: .init(name: "rickb"))
         )
         let expectedCurl = """
         curl -f -X POST --url 'https://www.rickb.com/curl' -H 'Content-Type: application/json' --data '{"name":"rickb"}'
@@ -104,12 +101,9 @@ struct RequestcURL {
     }
 
     @Test func curlGET() async throws {
-        let endpoint = TestModifiedEndpoint()
-            .modify(.curl())
-
         let request = try await URLRequest(
             baseURL: .test,
-            endpoint: endpoint
+            endpoint: TestModifiedEndpoint()
         )
         let expectedCurl = "curl -f -X GET --url 'https://www.rickb.com/modify-me' "
         #expect(request.curl() == expectedCurl)
@@ -178,12 +172,10 @@ struct RequestcURL {
             let route = POST("/image")
         }
         let data = try #require(Data(base64Encoded: base64Image))
-        let endpoint = ImageUpload(parameters: data)
-            .modify(.curl())
 
         let request = try await URLRequest(
             baseURL: .test,
-            endpoint: endpoint
+            endpoint: ImageUpload(parameters: data)
         )
         #expect(request.curl() == expectedCurl)
 /* fixme
@@ -266,18 +258,6 @@ struct RequestURL {
         let urlRequest = try await URLRequest(baseURL: .test, endpoint: endpoint)
 
         #expect (urlRequest.url == URL(string:"https://example.com/test"))
-    }
-}
-
-struct ResponsePrint {
-
-    @Test func printResponse() async throws {
-        let endpoint = TestModifiedEndpoint()
-            .modify(.printResponse())
-
-        let dataProvider = TestClient()
-
-        try await dataProvider.request(endpoint)
     }
 }
 
