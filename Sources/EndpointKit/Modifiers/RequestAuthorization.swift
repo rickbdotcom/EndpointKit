@@ -8,12 +8,12 @@
 import Foundation
 
 public protocol Authorization {
-    func authorize(request: URLRequest) -> URLRequest
+    func authorize(request: URLRequest) async throws -> URLRequest
 }
 
 let defaultAuthorizationKey = "Authorization"
 
-public struct BearerAuthorization: Authorization {
+public struct BasicAuthorization: Authorization {
     let authToken: String
     let key: String
 
@@ -25,18 +25,18 @@ public struct BearerAuthorization: Authorization {
     public init(userName: String, password: String, key: String? = nil) {
         self = .init(
             authToken: Data([userName, password].joined(separator: ":").utf8).base64EncodedString(),
-            key:  key ?? defaultAuthorizationKey
+            key: key ?? defaultAuthorizationKey
         )
     }
 
     public func authorize(request: URLRequest) -> URLRequest {
         var modifiedRequest = request
-        modifiedRequest.setValue("Bearer \(authToken)", forHTTPHeaderField: key)
+        modifiedRequest.setValue("Basic \(authToken)", forHTTPHeaderField: key)
         return modifiedRequest
     }
 }
 
-public struct BasicAuthorization: Authorization {
+public struct BearerAuthorization: Authorization {
     let authToken: String
     let key: String
 
@@ -47,14 +47,14 @@ public struct BasicAuthorization: Authorization {
 
     public func authorize(request: URLRequest) -> URLRequest {
         var modifiedRequest = request
-        modifiedRequest.setValue("Basic \(authToken)", forHTTPHeaderField: key)
+        modifiedRequest.setValue("Bearer \(authToken)", forHTTPHeaderField: key)
         return modifiedRequest
     }
 }
 
 public extension URLRequest {
-    mutating func authorize(with authorization: any Authorization) -> Self {
-        authorization.authorize(request: self)
+    mutating func authorize(with authorization: any Authorization) async throws -> Self {
+        try await authorization.authorize(request: self)
     }
 }
 
@@ -70,7 +70,7 @@ extension RequestEncoder {
     func authorize(with authorization: any Authorization) -> any RequestEncoder<Parameters> {
         AnyRequestEncoder { parameters, request in
             var request = try await encode(parameters, into: request)
-            return request.authorize(with: authorization)
+            return try await request.authorize(with: authorization)
         }
     }
 }

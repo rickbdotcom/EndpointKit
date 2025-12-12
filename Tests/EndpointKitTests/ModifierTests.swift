@@ -14,37 +14,37 @@ import UIKit
 
 struct RequestAuthorization {
 
-    @Test func bearer() async throws {
+    @Test func basic() async throws {
         try await TestModifiedEndpoint()
-            .modify(.authorize(with: BearerAuthorization(userName: "rickb", password: "test", key: "key")))
+            .modify(.authorize(with: BasicAuthorization(userName: "rickb", password: "test", key: "key")))
             .requestMatches(
-                headers: ["key": "Bearer cmlja2I6dGVzdA=="]
+                headers: ["key": "Basic cmlja2I6dGVzdA=="]
             )
 
         try await TestModifiedEndpoint()
-            .modify(.authorize(with: BearerAuthorization(userName: "rickb", password: "test")))
+            .modify(.authorize(with: BasicAuthorization(userName: "rickb", password: "test")))
             .requestMatches(
-                headers: ["Authorization": "Bearer cmlja2I6dGVzdA=="]
+                headers: ["Authorization": "Basic cmlja2I6dGVzdA=="]
             )
 
         try await TestModifiedEndpoint()
-            .modify(.authorize(with: BearerAuthorization(authToken: "cmlja2I6dGVzdA==")))
+            .modify(.authorize(with: BasicAuthorization(authToken: "cmlja2I6dGVzdA==")))
             .requestMatches(
-                headers: ["Authorization": "Bearer cmlja2I6dGVzdA=="]
+                headers: ["Authorization": "Basic cmlja2I6dGVzdA=="]
             )
     }
 
-    @Test func basic() async throws {
+    @Test func bearer() async throws {
         try await TestModifiedEndpoint()
-            .modify(.authorize(with: BasicAuthorization(authToken: "token", key: "key")))
+            .modify(.authorize(with: BearerAuthorization(authToken: "token", key: "key")))
             .requestMatches(
-                headers: ["key": "Basic token"]
+                headers: ["key": "Bearer token"]
             )
 
         try await TestModifiedEndpoint()
-            .modify(.authorize(with: BasicAuthorization(authToken: "token")))
+            .modify(.authorize(with: BearerAuthorization(authToken: "token")))
             .requestMatches(
-                headers: ["Authorization": "Basic token"]
+                headers: ["Authorization": "Bearer token"]
             )
     }
 }
