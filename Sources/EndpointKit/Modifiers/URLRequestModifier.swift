@@ -30,7 +30,7 @@ public struct URLRequestModifiers: EndpointModifiers {
         self.requestModifiers = requestModifiers
     }
     
-    public func modifiers<T: EndpointKit.Endpoint>(for endpoint: T) -> [AnyEndpointModifier<T.Parameters, T.Response>] {
+    public func modifiers<T: Endpoint>(for endpoint: T) -> [AnyEndpointModifier<T.Parameters, T.Response>] {
         requestModifiers.map { $0.asRequestModifier().any() }
     }
 }

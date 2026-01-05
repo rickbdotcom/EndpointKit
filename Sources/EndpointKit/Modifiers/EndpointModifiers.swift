@@ -8,7 +8,7 @@
 import Foundation
 
 public protocol EndpointModifiers {
-    func modifiers<T: EndpointKit.Endpoint>(for endpoint: T) -> [AnyEndpointModifier<T.Parameters, T.Response>] 
+    func modifiers<T: Endpoint>(for endpoint: T) -> [AnyEndpointModifier<T.Parameters, T.Response>] 
 }
 
 public extension EndpointModifiers where Self == EndpointModifiersArray {
@@ -21,7 +21,7 @@ public extension EndpointModifiers where Self == EndpointModifiersArray {
 public struct EndpointModifiersArray: EndpointModifiers {
     let array: [EndpointModifiers]
 
-    public func modifiers<T: EndpointKit.Endpoint>(for endpoint: T) -> [AnyEndpointModifier<T.Parameters, T.Response>] {
+    public func modifiers<T: Endpoint>(for endpoint: T) -> [AnyEndpointModifier<T.Parameters, T.Response>] {
         array.flatMap { $0.modifiers(for: endpoint) }
     }
 }
