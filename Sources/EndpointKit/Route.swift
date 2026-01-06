@@ -40,6 +40,10 @@ public func HEAD(_ path: String) -> Route {
     .init(.head, path)
 }
 
+public func PATCH(_ path: String) -> Route {
+    .init(.patch, path)
+}
+
 public extension URLRequest {
     init(
         baseURL: URL,

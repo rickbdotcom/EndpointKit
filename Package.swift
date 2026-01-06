@@ -6,9 +6,9 @@ import PackageDescription
 let package = Package(
 	name: "EndpointKit",
 	platforms: [
-		.macOS(.v12),
+		.macOS(.v13),
 		.iOS(.v16),
-		.tvOS(.v15),
+		.tvOS(.v16),
 		.watchOS(.v9)
 	],
 	products: [

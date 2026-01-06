@@ -50,13 +50,14 @@ private extension String {
 }
 
 private extension Data {
+
     func logString() -> String {
         String(logData: self)
     }
 }
 
 private extension URL {
-    
+
     func pathQuery() -> String {
         [path(percentEncoded: false), query(percentEncoded: false)].compactMap { $0 }.joined(separator: "?")
     }
