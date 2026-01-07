@@ -8,7 +8,7 @@ import Foundation
 
 /// ResponseDecoder decodes data from the response
 public protocol ResponseDecoder<Response>: Sendable {
-    associatedtype Response
+    associatedtype Response: Sendable
 
     func decode(response: URLResponse, data: Data) async throws -> Response
 }

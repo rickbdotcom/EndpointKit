@@ -36,7 +36,7 @@ extension AnyEndpointModifier {
     }
 
     public static func replaceError(
-        _ replace: @escaping (Error) async throws -> Response
+        _ replace: @Sendable @escaping (Error) async throws -> Response
     ) -> Self {
         ResponseModifier {
             $0.replaceError(replace)

@@ -9,8 +9,8 @@ import Foundation
 
 /// An endpoint modifier that modifies an endpoint's response
 public struct ResponseModifier<Parameters, Response>: EndpointModifier {
-    public typealias MapDecoder = (any ResponseDecoder<Response>) -> any ResponseDecoder<Response>
-    public typealias Decoder = (any ResponseDecoder<Response>, URLResponse, Data) async throws -> Response
+    public typealias MapDecoder = @Sendable (any ResponseDecoder<Response>) -> any ResponseDecoder<Response>
+    public typealias Decoder = @Sendable (any ResponseDecoder<Response>, URLResponse, Data) async throws -> Response
     let responseDecoder: MapDecoder
 
     /// Create parameter modifier from an existing response encoder

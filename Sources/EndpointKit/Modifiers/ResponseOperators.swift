@@ -10,7 +10,7 @@ import Foundation
 extension ResponseDecoder {
 
     public func map (
-        _ replace: @escaping (Response) async throws -> Response
+        _ replace: @Sendable @escaping (Response) async throws -> Response
     ) -> any ResponseDecoder<Response> {
         AnyResponseDecoder { response, data in
             try await replace(decode(response: response, data: data))
@@ -18,7 +18,7 @@ extension ResponseDecoder {
     }
 
     public func replaceError(
-        _ replace: @escaping (Error) async throws -> Response
+        _ replace: @Sendable @escaping (Error) async throws -> Response
     ) -> any ResponseDecoder<Response> {
         AnyResponseDecoder { response, data in
             do {

@@ -10,9 +10,9 @@ import Foundation
 
 /// EndpointModifier modifies an endpoint
 /// Primary use will be for adding headers to the request and adding error handling for response.
-public protocol EndpointModifier<Parameters, Response> {
-    associatedtype Parameters
-    associatedtype Response
+public protocol EndpointModifier<Parameters, Response>: Sendable {
+    associatedtype Parameters: Sendable
+    associatedtype Response: Sendable
 
     func modify<T: Endpoint>(_ endpoint: T) -> AnyEndpoint<T.Parameters, T.Response> 
     where T.Parameters == Parameters, T.Response == Response

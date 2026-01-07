@@ -9,9 +9,9 @@
 import Foundation
 
 /// An endpoint modifier that modifies an endpoint's parameters
-public struct RequestModifier<Parameters, Response>: EndpointModifier {
-    public typealias MapEncoder = (any RequestEncoder<Parameters>) -> any RequestEncoder<Parameters>
-    public typealias Encoder = (any RequestEncoder<Parameters>, Parameters, URLRequest) async throws -> URLRequest
+public struct RequestModifier<Parameters: Sendable, Response: Sendable>: EndpointModifier {
+    public typealias MapEncoder = @Sendable (any RequestEncoder<Parameters>) -> any RequestEncoder<Parameters>
+    public typealias Encoder = @Sendable (any RequestEncoder<Parameters>, Parameters, URLRequest) async throws -> URLRequest
     let parameterEncoder: MapEncoder
 
     /// Create parameter modifier from an existing parameter encoder

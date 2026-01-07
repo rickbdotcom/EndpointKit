@@ -8,8 +8,8 @@
 import Foundation
 
 /// Type erased endpoint modifier
-public struct AnyEndpointModifier<Parameters, Response>: EndpointModifier {
-    let _modify: (AnyEndpoint<Parameters, Response>) -> AnyEndpoint<Parameters, Response>
+public struct AnyEndpointModifier<Parameters: Sendable, Response: Sendable>: EndpointModifier {
+    let _modify: @Sendable (AnyEndpoint<Parameters, Response>) -> AnyEndpoint<Parameters, Response>
 
     /// Create type erased modifier from existing modifier
     public init(_ modifier: any EndpointModifier<Parameters, Response>) {

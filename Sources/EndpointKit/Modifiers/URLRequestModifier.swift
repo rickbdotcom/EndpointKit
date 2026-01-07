@@ -7,14 +7,14 @@
 
 import Foundation
 
-public protocol URLRequestModifier {
+public protocol URLRequestModifier: Sendable {
     func callAsFunction(_ urlRequest: URLRequest) async throws -> URLRequest
 }
 
 public struct AnyURLRequestModifier: URLRequestModifier {
-    let modify: (URLRequest) async throws -> URLRequest
-    
-    public init(_ modify: @escaping (URLRequest) async throws -> URLRequest) {
+    let modify: @Sendable (URLRequest) async throws -> URLRequest
+
+    public init(_ modify: @Sendable @escaping (URLRequest) async throws -> URLRequest) {
         self.modify = modify
     }
     

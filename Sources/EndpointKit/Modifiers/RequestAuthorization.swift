@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol Authorization {
+public protocol Authorization: Sendable {
     func authorize(request: URLRequest) async throws -> URLRequest
 }
 
