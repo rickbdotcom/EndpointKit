@@ -12,9 +12,17 @@ public protocol EndpointModifiers {
 }
 
 public extension EndpointModifiers where Self == EndpointModifiersArray {
-    
+
     static func array(_ array: [any EndpointModifiers]) -> Self {
         .init(array: array)
+    }
+
+    func append(_ array: [any EndpointModifiers]) -> Self {
+        .array([self] + array)
+    }
+
+    func append(_ endpointModifiers: any EndpointModifiers) -> Self {
+        .array([self, endpointModifiers])
     }
 }
 
