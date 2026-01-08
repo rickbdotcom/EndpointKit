@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol EndpointModifiers {
+public protocol EndpointModifiers: Sendable {
     func modifiers<T: Endpoint>(for endpoint: T) -> [AnyEndpointModifier<T.Parameters, T.Response>] 
 }
 
