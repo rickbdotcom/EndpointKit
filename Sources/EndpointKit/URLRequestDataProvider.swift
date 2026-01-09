@@ -7,7 +7,7 @@
 import Foundation
 
 /// URLSession implements this, can be used for mocking
-public protocol URLRequestDataProvider: Sendable {
+public protocol URLRequestDataProvider {
     func data(for: URLRequest) async throws -> (Data, URLResponse)
 }
 
@@ -22,9 +22,9 @@ public extension URLRequestDataProvider {
 }
 
 public struct AnyURLRequestDataProvider: URLRequestDataProvider {
-    let _data: @Sendable (URLRequest) async throws -> (Data, URLResponse)
+    let _data: (URLRequest) async throws -> (Data, URLResponse)
     
-    public init(_data: @Sendable @escaping (URLRequest) async throws -> (Data, URLResponse)) {
+    public init(_data: @escaping (URLRequest) async throws -> (Data, URLResponse)) {
         self._data = _data
     }
     
@@ -103,11 +103,11 @@ public extension URLRequestDataProvider where Self == AnyURLRequestDataProvider 
 }
 
 public struct URLRequestDataProviderCollection: URLRequestDataProvider {
-    public struct ProviderMatch: Sendable {
+    public struct ProviderMatch {
         public let provider: URLRequestDataProvider
-        public let handles: @Sendable (URLRequest) -> Bool
+        public let handles: (URLRequest) -> Bool
 
-        public init(_ provider: URLRequestDataProvider, handles: @Sendable @escaping (URLRequest) -> Bool) {
+        public init(_ provider: URLRequestDataProvider, handles: @escaping (URLRequest) -> Bool) {
             self.provider = provider
             self.handles = handles
         }
