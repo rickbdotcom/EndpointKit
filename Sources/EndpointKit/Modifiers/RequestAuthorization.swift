@@ -7,13 +7,9 @@
 
 import Foundation
 
-public protocol Authorization: Sendable {
-    func authorize(request: URLRequest) async throws -> URLRequest
-}
-
 let defaultAuthorizationKey = "Authorization"
 
-public struct BasicAuthorization: Authorization {
+public struct BasicAuthorization: URLRequestModifier {
     let authToken: String
     let key: String
 
@@ -29,14 +25,14 @@ public struct BasicAuthorization: Authorization {
         )
     }
 
-    public func authorize(request: URLRequest) -> URLRequest {
+    public func callAsFunction(_ request: URLRequest) -> URLRequest {
         var modifiedRequest = request
         modifiedRequest.setValue("Basic \(authToken)", forHTTPHeaderField: key)
         return modifiedRequest
     }
 }
 
-public struct BearerAuthorization: Authorization {
+public struct BearerAuthorization: URLRequestModifier {
     let authToken: String
     let key: String
 
@@ -45,32 +41,9 @@ public struct BearerAuthorization: Authorization {
         self.key = key ?? defaultAuthorizationKey
     }
 
-    public func authorize(request: URLRequest) -> URLRequest {
+    public func callAsFunction(_ request: URLRequest) -> URLRequest {
         var modifiedRequest = request
         modifiedRequest.setValue("Bearer \(authToken)", forHTTPHeaderField: key)
         return modifiedRequest
-    }
-}
-
-public extension URLRequest {
-    mutating func authorize(with authorization: any Authorization) async throws -> Self {
-        try await authorization.authorize(request: self)
-    }
-}
-
-extension AnyEndpointModifier {
-    public static func authorize(with authorization: any Authorization) -> Self {
-        RequestModifier {
-            $0.authorize(with: authorization)
-        }.any()
-    }
-}
-
-extension RequestEncoder {
-    func authorize(with authorization: any Authorization) -> any RequestEncoder<Parameters> {
-        AnyRequestEncoder { parameters, request in
-            var request = try await encode(parameters, into: request)
-            return try await request.authorize(with: authorization)
-        }
     }
 }

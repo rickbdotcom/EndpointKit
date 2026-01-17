@@ -23,6 +23,18 @@ public struct AnyURLRequestModifier: URLRequestModifier {
     }
 }
 
+public struct URLRequestModifiers: EndpointModifiers {
+    let requestModifiers: [URLRequestModifier]
+    
+    public init(_ requestModifiers: [URLRequestModifier]) {
+        self.requestModifiers = requestModifiers
+    }
+    
+    public func modifiers<T: Endpoint>(for endpoint: T) -> [AnyEndpointModifier<T.Parameters, T.Response>] {
+        requestModifiers.map { .modifyRequest($0) }
+    }
+}
+
 extension AnyEndpointModifier {
     public static func modifyRequest(_ modify: URLRequestModifier) -> Self {
         RequestModifier {

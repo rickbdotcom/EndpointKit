@@ -16,19 +16,19 @@ struct RequestAuthorization {
 
     @Test func basic() async throws {
         try await TestModifiedEndpoint()
-            .modify(.authorize(with: BasicAuthorization(userName: "rickb", password: "test", key: "key")))
+            .modify(.modifyRequest(BasicAuthorization(userName: "rickb", password: "test", key: "key")))
             .requestMatches(
                 headers: ["key": "Basic cmlja2I6dGVzdA=="]
             )
 
         try await TestModifiedEndpoint()
-            .modify(.authorize(with: BasicAuthorization(userName: "rickb", password: "test")))
+            .modify(.modifyRequest(BasicAuthorization(userName: "rickb", password: "test")))
             .requestMatches(
                 headers: ["Authorization": "Basic cmlja2I6dGVzdA=="]
             )
 
         try await TestModifiedEndpoint()
-            .modify(.authorize(with: BasicAuthorization(authToken: "cmlja2I6dGVzdA==")))
+            .modify(.modifyRequest(BasicAuthorization(authToken: "cmlja2I6dGVzdA==")))
             .requestMatches(
                 headers: ["Authorization": "Basic cmlja2I6dGVzdA=="]
             )
@@ -36,13 +36,13 @@ struct RequestAuthorization {
 
     @Test func bearer() async throws {
         try await TestModifiedEndpoint()
-            .modify(.authorize(with: BearerAuthorization(authToken: "token", key: "key")))
+            .modify(.modifyRequest(BearerAuthorization(authToken: "token", key: "key")))
             .requestMatches(
                 headers: ["key": "Bearer token"]
             )
 
         try await TestModifiedEndpoint()
-            .modify(.authorize(with: BearerAuthorization(authToken: "token")))
+            .modify(.modifyRequest(BearerAuthorization(authToken: "token")))
             .requestMatches(
                 headers: ["Authorization": "Bearer token"]
             )

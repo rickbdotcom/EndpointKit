@@ -32,16 +32,7 @@ public extension Endpoint where Parameters == Void {
 }
 
 public protocol EndpointClient {
-    func request<T: Endpoint>(
-        _ endpoint: T,
-        modifiers: (@Sendable () async throws -> [AnyEndpointModifier<T.Parameters, T.Response>])?
-    ) async throws -> T.Response
-}
-
-public extension EndpointClient {
-    func request<T: Endpoint>(_ endpoint: T) async throws -> T.Response {
-        try await request(endpoint, modifiers: nil)
-    }
+    func request<T: Endpoint>(_ endpoint: T) async throws -> T.Response
 }
 
 public extension URLRequest {
