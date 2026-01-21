@@ -42,6 +42,11 @@ public struct HTTPError: LocalizedError {
     public var responseString: String? {
         .init(data: data, encoding: .utf8)
     }
+    
+    public init(data: Data, response: HTTPURLResponse) {
+        self.data = data
+        self.response = response
+    }
 }
 
 extension URLResponse {
