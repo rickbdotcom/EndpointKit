@@ -10,6 +10,9 @@ import Foundation
 public struct DataResponseDecoder: ResponseDecoder {
     public typealias Response = Data
     
+    public init() {
+    }
+    
     public func decode(response: URLResponse, data: Data) throws -> Response {
         data
     }
