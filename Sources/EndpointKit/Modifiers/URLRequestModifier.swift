@@ -44,7 +44,7 @@ extension AnyEndpointModifier {
 }
 
 extension RequestEncoder {
-    func modifyRequest(_ modify: URLRequestModifier) -> any RequestEncoder<Parameters> {
+    public func modifyRequest(_ modify: URLRequestModifier) -> any RequestEncoder<Parameters> {
         AnyRequestEncoder { parameters, request in
             return try await encode(parameters, into: modify(request))
         }

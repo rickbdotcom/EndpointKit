@@ -8,10 +8,13 @@
 import Foundation
 
 /// No parameters
-struct EmptyParameterEncoder: RequestEncoder {
-    typealias Parameters = Void
+public struct EmptyParameterEncoder: RequestEncoder {
+    public typealias Parameters = Void
 
-    func encode(_ parameters: Parameters, into request: URLRequest) throws -> URLRequest {
+    public init() {
+    }
+    
+    public func encode(_ parameters: Parameters, into request: URLRequest) throws -> URLRequest {
         request
     }
 }
