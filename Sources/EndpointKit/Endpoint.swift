@@ -31,7 +31,7 @@ public extension Endpoint where Parameters == Void {
     var parameters: Void { () }
 }
 
-public protocol EndpointClient {
+public protocol EndpointClient: Sendable {
     func request<T: Endpoint>(_ endpoint: T) async throws -> T.Response
 }
 
