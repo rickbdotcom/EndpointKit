@@ -122,7 +122,7 @@ public struct URLRequestDataProviderCollection: URLRequestDataProvider {
 
     public var matches: [ProviderMatch]
 
-    public init(_ matches: [ProviderMatch]) {
+    public init(_ matches: [ProviderMatch] = []) {
         self.matches = matches
     }
 
@@ -133,5 +133,15 @@ public struct URLRequestDataProviderCollection: URLRequestDataProvider {
             }
         }
         throw CancellationError()
+    }
+}
+
+extension URLRequestDataProviderCollection: EndpointClient {
+
+    public func request<T>(_ endpoint: T) async throws -> T.Response where T : Endpoint {
+        guard let baseURL = URL(string:"endpoint-client://") else {
+            throw CancellationError()
+        }
+        return try await request(baseURL: baseURL, endpoint: endpoint)
     }
 }
