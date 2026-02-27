@@ -85,8 +85,10 @@ extension Dictionary where Key == String, Value == Any {
                 case .commaSeparated:
                     [(key, array.map { "\($0)" }.joined(separator: ","))]
                 }
-            } else {
+            } else if value is NSNull == false {
                 [(key, "\(value)")]
+            } else {
+                [(String,String)]()
             }
         }
     }
