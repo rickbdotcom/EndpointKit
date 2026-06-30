@@ -42,7 +42,7 @@ public extension JSONDecoder {
 }
 
 public struct JSONDecodingError: Error {
-    let response: URLResponse
-    let data: Data
-    let decodingError: Error
+    public let response: URLResponse
+    public let data: Data
+    public let decodingError: Error
 }
