@@ -17,7 +17,15 @@ public struct JSONDecodableResponseDecoder<T: Decodable>: ResponseDecoder {
     }
 
     public func decode(response: URLResponse, data: Data) throws -> Response {
-        try decoder.decode(T.self, from: data)
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            throw JSONDecodingError(
+                response: response,
+                data: data,
+                decodingError: error
+            )
+        }
     }
 }
 
@@ -31,4 +39,10 @@ public extension JSONDecoder {
         keyDecodingStrategy = strategy
         return self
     }
+}
+
+public struct JSONDecodingError: Error {
+    let response: URLResponse
+    let data: Data
+    let decodingError: Error
 }
